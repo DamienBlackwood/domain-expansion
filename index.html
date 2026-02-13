@@ -41,7 +41,6 @@
             transition: color 0.35s ease, text-shadow 0.35s ease;
         }
 
-        /* camera window — properly centered now */
         #video-container {
             position: absolute;
             bottom: 2%;
@@ -57,37 +56,156 @@
             box-shadow: 0 0 40px rgba(0, 0, 0, 0.9);
         }
 
-        video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            opacity: 0.75;
-        }
+        video { width: 100%; height: 100%; object-fit: cover; opacity: 0.75; }
+        #output_canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
 
-        #output_canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-        }
-
-        /* film grain — cranked up noise frequency for finer texture */
         #grain {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            pointer-events: none;
-            z-index: 5;
-            opacity: 0.045;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 5; opacity: 0.045;
             background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
         }
 
-        /* gesture cheat-sheet, bottom right */
+        /* ── Infinite Void eye overlay ─────────────────────────────────────── */
+        #void-eye {
+            position: fixed;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 220px; height: 220px;
+            pointer-events: none;
+            z-index: 8;
+            opacity: 0;
+            transition: opacity 1.4s ease;
+        }
+        #void-eye.active { opacity: 1; }
+
+        /* soft outer radial glow that bleeds outward from the eye */
+        .void-glow {
+            position: absolute;
+            top: -70%; left: -70%; right: -70%; bottom: -70%;
+            border-radius: 50%;
+            background: radial-gradient(circle,
+                transparent 25%,
+                rgba(0, 180, 255, 0.12) 50%,
+                rgba(0, 80, 200, 0.08) 70%,
+                transparent 100%
+            );
+            animation: void-breathe 4s ease-in-out infinite;
+        }
+
+        /* bright event-horizon ring */
+        .void-ring {
+            position: absolute;
+            top: 18%; left: 18%; right: 18%; bottom: 18%;
+            border-radius: 50%;
+            box-shadow:
+                0 0 0 1px rgba(0, 230, 255, 0.9),
+                0 0 18px 7px rgba(0, 220, 255, 0.65),
+                0 0 50px 20px rgba(0, 140, 255, 0.28),
+                inset 0 0 20px rgba(0, 200, 255, 0.35);
+            animation: void-breathe 4s ease-in-out infinite;
+        }
+
+        /* dark void pupil */
+        .void-core {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 38%; height: 38%;
+            border-radius: 50%;
+            background: #000;
+            box-shadow: 0 0 20px 10px #000;
+        }
+
+        /* orbiting inner iris detail */
+        .void-iris {
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 50%; height: 50%;
+            margin-left: -25%; margin-top: -25%;
+            border-radius: 50%;
+            border: 1px solid rgba(0, 220, 255, 0.3);
+            animation: void-spin 10s linear infinite;
+        }
+
+        @keyframes void-breathe {
+            0%, 100% { transform: scale(1);    opacity: 1;    }
+            50%       { transform: scale(1.07); opacity: 0.88; }
+        }
+
+        @keyframes void-spin {
+            from { transform: rotate(0deg);   }
+            to   { transform: rotate(360deg); }
+        }
+
+        /* white paint splashes matching the reference art */
+        .void-splash {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.78);
+            filter: blur(9px);
+            border-radius: 50%;
+        }
+        .void-splash.top {
+            width: 150px; height: 30px;
+            top: -16px; left: 50%;
+            transform: translateX(-50%);
+        }
+        .void-splash.bot {
+            width: 95px; height: 20px;
+            bottom: -10px; left: 50%;
+            transform: translateX(-50%);
+        }
+        .void-splash.left {
+            width: 26px; height: 95px;
+            top: 50%; left: -14px;
+            transform: translateY(-50%);
+        }
+        .void-splash.right {
+            width: 24px; height: 82px;
+            top: 50%; right: -12px;
+            transform: translateY(-50%);
+        }
+
+        /* ── Sukuna mudra guide ────────────────────────────────────────────── */
+        #sukuna-guide {
+            position: fixed;
+            bottom: 235px;
+            left: 18px;
+            z-index: 25;
+            opacity: 0.22;
+            transition: opacity 0.5s ease;
+            text-align: center;
+            pointer-events: none;
+        }
+        #sukuna-guide img {
+            width: 82px;
+            display: block;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 30, 0, 0.3);
+            transition: border-color 0.4s, box-shadow 0.4s;
+        }
+        .guide-label {
+            font-size: 0.5rem;
+            letter-spacing: 2px;
+            color: rgba(255, 60, 0, 0.55);
+            margin-top: 5px;
+        }
+        /* both hands in frame — getting close */
+        #sukuna-guide.two-hands {
+            opacity: 0.65;
+        }
+        #sukuna-guide.two-hands img {
+            border-color: rgba(255, 50, 0, 0.75);
+            box-shadow: 0 0 14px rgba(255, 30, 0, 0.5);
+        }
+        /* mudra matched — flash bright */
+        #sukuna-guide.matched img {
+            box-shadow: 0 0 30px rgba(255, 40, 0, 0.95);
+        }
+
+        /* ── gesture hints ─────────────────────────────────────────────────── */
         #hints {
             position: fixed;
-            bottom: 14px;
-            right: 18px;
+            bottom: 14px; right: 18px;
             z-index: 30;
             color: rgba(255, 255, 255, 0.28);
             font-size: 0.6rem;
@@ -96,7 +214,6 @@
             pointer-events: none;
             line-height: 1.9;
         }
-
         .h-gesture { margin-right: 8px; opacity: 0.55; }
     </style>
 
@@ -111,6 +228,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+
 </head>
 <body>
 
@@ -126,19 +244,36 @@
     <canvas id="output_canvas"></canvas>
 </div>
 
-<!-- gesture hints -->
+<!-- Infinite Void eye — layered CSS to match the reference art -->
+<div id="void-eye">
+    <div class="void-glow"></div>
+    <div class="void-ring"></div>
+    <div class="void-iris"></div>
+    <div class="void-core"></div>
+    <div class="void-splash top"></div>
+    <div class="void-splash bot"></div>
+    <div class="void-splash left"></div>
+    <div class="void-splash right"></div>
+</div>
+
+<!-- Sukuna mudra guide — user must form this sign with both hands -->
+<div id="sukuna-guide">
+    <img src="./References/Images/Sukuna/OIP-246756285.0isXDIhq0bBnpdmD7ggTZAHaK-.jpeg" alt="Sukuna mudra">
+    <div class="guide-label">BOTH HANDS</div>
+</div>
+
 <div id="hints">
     <div><span class="h-gesture">pinch</span>Hollow Purple</div>
     <div><span class="h-gesture">fist</span>Blue</div>
     <div><span class="h-gesture">index up</span>Red</div>
     <div><span class="h-gesture">two fingers</span>Infinite Void</div>
-    <div><span class="h-gesture">open hand</span>Malevolent Shrine</div>
+    <div><span class="h-gesture">sukuna mudra</span>Malevolent Shrine</div>
 </div>
 
 <script type="module">
 import * as THREE from 'three';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
-import { RenderPass }     from 'three/addons/postprocessing/RenderPass.js';
+import { RenderPass }      from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 
 // ── scene ──────────────────────────────────────────────────────────────────
@@ -156,13 +291,11 @@ const bloomPass = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight)
 composer.addPass(new RenderPass(scene, camera));
 composer.addPass(bloomPass);
 
-// ── custom shader — circular soft particles with real per-particle size ────
-//   (PointsMaterial can't do this without a shader)
+// ── custom shader — real per-particle size + circular soft edges ───────────
 const vertShader = `
     attribute vec3 color;
     attribute float size;
     varying vec3 vColor;
-
     void main() {
         vColor = color;
         vec4 mv = modelViewMatrix * vec4(position, 1.0);
@@ -170,10 +303,8 @@ const vertShader = `
         gl_Position  = projectionMatrix * mv;
     }
 `;
-
 const fragShader = `
     varying vec3 vColor;
-
     void main() {
         vec2  uv = gl_PointCoord - 0.5;
         float d  = length(uv);
@@ -194,23 +325,25 @@ const targetPositions = new Float32Array(COUNT * 3);
 const targetColors    = new Float32Array(COUNT * 3);
 const targetSizes     = new Float32Array(COUNT);
 
+// void animation — each particle gets a persistent phase seed and a stored
+// background sphere position so they can be animated every frame without drift
+let   voidTime        = 0;
+const voidPhases      = new Float32Array(COUNT);       // 0..1 random seed per particle
+const voidBgPositions = new Float32Array(COUNT * 3);   // base sphere coords for bg band
+
 geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
 geo.setAttribute('color',    new THREE.BufferAttribute(colors,    3));
 geo.setAttribute('size',     new THREE.BufferAttribute(sizes,     1));
 
 const mat = new THREE.ShaderMaterial({
-    vertexShader:   vertShader,
-    fragmentShader: fragShader,
-    blending:       THREE.AdditiveBlending,
-    transparent:    true,
-    depthWrite:     false,
+    vertexShader: vertShader, fragmentShader: fragShader,
+    blending: THREE.AdditiveBlending, transparent: true, depthWrite: false,
 });
-
 const particles = new THREE.Points(geo, mat);
 particles.frustumCulled = false;
 scene.add(particles);
 
-// ── static star field — always visible behind techniques ──────────────────
+// ── static star field ──────────────────────────────────────────────────────
 const STARS   = 2000;
 const starGeo = new THREE.BufferGeometry();
 const starPos = new Float32Array(STARS * 3);
@@ -224,9 +357,8 @@ for (let i = 0; i < STARS; i++) {
 }
 starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
 const starField = new THREE.Points(starGeo, new THREE.PointsMaterial({
-    size: 0.12, color: 0xffffff,
-    blending: THREE.AdditiveBlending,
-    transparent: true, depthWrite: false, opacity: 0.55
+    size: 0.12, color: 0xffffff, blending: THREE.AdditiveBlending,
+    transparent: true, depthWrite: false, opacity: 0.55,
 }));
 scene.add(starField);
 
@@ -234,68 +366,95 @@ scene.add(starField);
 
 function getRed(i) {
     const t = i / COUNT;
-    // white-hot core
     if (t < 0.05) {
-        const r = Math.random() * 4, th = Math.random() * 6.28, ph = Math.acos(2*Math.random()-1);
+        const r = Math.random()*4, th = Math.random()*6.28, ph = Math.acos(2*Math.random()-1);
         return { x: r*Math.sin(ph)*Math.cos(th), y: r*Math.sin(ph)*Math.sin(th), z: r*Math.cos(ph), r:3.0, g:2.5, b:2.0, s:3.0 };
     }
-    // red inner burst
     if (t < 0.15) {
         const r = 4+Math.random()*5, th = Math.random()*6.28, ph = Math.acos(2*Math.random()-1);
         return { x: r*Math.sin(ph)*Math.cos(th), y: r*Math.sin(ph)*Math.sin(th), z: r*Math.cos(ph), r:3.0, g:0.05, b:0.0, s:2.0 };
     }
-    // 5 jagged spiral arms
-    const arm   = i % 5;
-    const angle = t*22 + arm*(Math.PI*2/5) + (Math.random()-0.5)*0.3;
-    const rad   = 10 + t*32;
-    const jit   = (Math.random()-0.5) * 2.5 * t;
+    const arm = i % 5, angle = t*22 + arm*(Math.PI*2/5) + (Math.random()-0.5)*0.3;
+    const rad = 10 + t*32, jit = (Math.random()-0.5)*2.5*t;
     return { x: rad*Math.cos(angle)+jit, y: rad*Math.sin(angle)+jit, z: (Math.random()-0.5)*12*t, r:1.8, g:0.0, b:0.0, s: Math.random()<0.08 ? 2.0 : 0.7 };
 }
 
-function getVoid(i) {
-    const t = i / COUNT;
-    // bright inner event horizon
-    if (t < 0.06) {
-        const a = Math.random() * Math.PI * 2;
-        return { x: 20*Math.cos(a), y: 20*Math.sin(a), z: (Math.random()-0.5)*0.5, r:2.5, g:2.5, b:2.5, s:2.2 };
+// live void simulation — called every frame, writes directly into target arrays
+// particles orbit, flow, and breathe rather than sitting static
+function animateVoid(t) {
+    for (let i = 0; i < COUNT; i++) {
+        const ph  = voidPhases[i];    // stable per-particle seed
+        const pct = i / COUNT;
+        let x, y, z, r, g, b, s;
+
+        if (pct < 0.06) {
+            // inner event horizon — bright white, slow clockwise orbit + radius pulse
+            const angle  = ph * 6.28 + t * 0.28;
+            const radius = 20 + Math.sin(t * 1.6 + ph * 5.8) * 1.4;
+            x = radius * Math.cos(angle);
+            y = radius * Math.sin(angle);
+            z = Math.sin(t * 2.4 + ph * 7) * 0.5;
+            r = 2.5; g = 2.5; b = 2.5;
+            s = 2.0 + Math.sin(t * 3.5 + ph * 4) * 0.5;
+
+        } else if (pct < 0.12) {
+            // mid ring — blue, counter-rotates gently
+            const angle  = ph * 6.28 - t * 0.11;
+            const radius = 34 + Math.sin(t * 0.85 + ph * 4) * 2.5;
+            x = radius * Math.cos(angle);
+            y = radius * Math.sin(angle);
+            z = Math.sin(t * 1.1 + ph * 5) * 1.4;
+            r = 0.35; g = 0.75; b = 1.8; s = 1.2;
+
+        } else if (pct < 0.18) {
+            // outer ring — faint, barely drifts
+            const angle  = ph * 6.28 + t * 0.055;
+            const radius = 52 + Math.sin(t * 0.45 + ph * 3) * 3.5;
+            x = radius * Math.cos(angle);
+            y = radius * Math.sin(angle);
+            z = Math.sin(t * 0.6 + ph * 3.5) * 2.2;
+            r = 0.08; g = 0.28; b = 0.9; s = 0.7;
+
+        } else if (pct < 0.30) {
+            // infinite-information pillar — flows upward continuously
+            // each particle has a unique phase so the stream looks dense + smooth
+            const flow  = ((ph + t * 0.2) % 1.0) * 130 - 65;
+            const drift = Math.sin(t * 2.0 + ph * 9) * 0.45;
+            x = drift; y = flow; z = drift * 0.4;
+            r = 1.6; g = 1.6; b = 1.6;
+            s = 0.38 + Math.abs(Math.sin(t * 5 + ph * 6)) * 0.18;
+
+        } else {
+            // cosmic background — gentle oscillation around stored base positions
+            const bx = voidBgPositions[i*3], by = voidBgPositions[i*3+1], bz = voidBgPositions[i*3+2];
+            x = bx + Math.sin(t * 0.28 + ph * 6.1) * 1.8;
+            y = by + Math.cos(t * 0.22 + ph * 5.3) * 1.8;
+            z = bz + Math.sin(t * 0.35 + ph * 7.2) * 1.8;
+            r = 0.05; g = 0.22; b = 0.9; s = 0.4;
+        }
+
+        targetPositions[i*3]   = x;  targetPositions[i*3+1] = y;  targetPositions[i*3+2] = z;
+        targetColors[i*3]      = r;  targetColors[i*3+1]    = g;  targetColors[i*3+2]    = b;
+        targetSizes[i]         = s;
     }
-    // mid ring
-    if (t < 0.12) {
-        const a = Math.random() * Math.PI * 2;
-        return { x: 34*Math.cos(a), y: 34*Math.sin(a), z: (Math.random()-0.5)*1.2, r:0.4, g:0.8, b:1.8, s:1.2 };
-    }
-    // outer faint ring
-    if (t < 0.18) {
-        const a = Math.random() * Math.PI * 2;
-        return { x: 52*Math.cos(a), y: 52*Math.sin(a), z: (Math.random()-0.5)*2, r:0.1, g:0.3, b:0.9, s:0.7 };
-    }
-    // vertical infinite-information pillar
-    if (t < 0.30) {
-        return { x: (Math.random()-0.5)*1.5, y: (Math.random()-0.5)*65, z: (Math.random()-0.5)*1.5, r:1.5, g:1.5, b:1.5, s:0.45 };
-    }
-    // deep cosmic background
-    const rad = 38 + Math.random()*80, th = Math.random()*6.28, ph = Math.acos(2*Math.random()-1);
-    return { x: rad*Math.sin(ph)*Math.cos(th), y: rad*Math.sin(ph)*Math.sin(th), z: rad*Math.cos(ph), r:0.05, g:0.25, b:0.9, s:0.4 };
 }
 
 function getPurple(i) {
     const t = i / COUNT;
-    // purple singularity at collision center
     if (t < 0.07) {
         const r = Math.random()*5, th = Math.random()*6.28, ph = Math.acos(2*Math.random()-1);
         return { x: r*Math.sin(ph)*Math.cos(th), y: r*Math.sin(ph)*Math.sin(th), z: r*Math.cos(ph), r:1.8, g:0.1, b:2.5, s:3.5 };
     }
-    // blue vortex arm spiraling from the left
     if (t < 0.38) {
+        // blue vortex arm from the left
         const s = (t-0.07)/0.31, a = s*14, rad = 5+s*22;
         return { x: -18+rad*Math.cos(a), y: rad*Math.sin(a)*0.5, z: (Math.random()-0.5)*7, r:0.05, g:0.1, b:1.8, s:1.4 };
     }
-    // red vortex arm spiraling from the right
     if (t < 0.68) {
+        // red vortex arm from the right
         const s = (t-0.38)/0.3, a = -(s*14), rad = 5+s*22;
         return { x: 18-rad*Math.cos(a), y: rad*Math.sin(a)*0.5, z: (Math.random()-0.5)*7, r:1.8, g:0.0, b:0.1, s:1.4 };
     }
-    // outer chaotic spray
     if (Math.random() > 0.5) return { x:(Math.random()-0.5)*90, y:(Math.random()-0.5)*90, z:(Math.random()-0.5)*45, r:0.5, g:0.0, b:0.9, s:0.5 };
     const r = 19+Math.random()*9, th = Math.random()*6.28, ph = Math.acos(2*Math.random()-1);
     return { x: r*Math.sin(ph)*Math.cos(th), y: r*Math.sin(ph)*Math.sin(th), z: r*Math.cos(ph), r:0.7, g:0.0, b:1.2, s:0.9 };
@@ -303,56 +462,95 @@ function getPurple(i) {
 
 function getBlue(i) {
     const t = i / COUNT;
-    // singularity core
     if (t < 0.05) {
         const r = Math.random()*3, th = Math.random()*6.28, ph = Math.acos(2*Math.random()-1);
         return { x: r*Math.sin(ph)*Math.cos(th), y: r*Math.sin(ph)*Math.sin(th), z: r*Math.cos(ph), r:0.3, g:0.8, b:3.0, s:3.5 };
     }
-    // 4 inward spiral arms
-    const arm   = i % 4;
-    const angle = t*16 + arm*(Math.PI*2/4);
-    const rad   = 8 + Math.random()*30;
+    const arm = i%4, angle = t*16 + arm*(Math.PI*2/4);
+    const rad  = 8 + Math.random()*30;
     return { x: rad*Math.cos(angle), y: rad*Math.sin(angle), z: (Math.random()-0.5)*10, r:0.0, g:0.2, b:2.0, s:1.1 };
 }
 
 function getShrine(i) {
     const t = i / COUNT;
-    // sprawling dark ground aura
     if (t < 0.22) return { x:(Math.random()-0.5)*100, y:-22+Math.random()*6, z:(Math.random()-0.5)*100, r:0.55, g:0.0, b:0.0, s:0.5 };
-    // two dark torii pillars
     if (t < 0.33) {
         const side = (i%2===0) ? -14 : 14;
-        return { x: side+(Math.random()-0.5)*1.5, y: -22+Math.random()*40, z: (Math.random()-0.5)*2-5, r:0.12, g:0.0, b:0.0, s:0.7 };
+        return { x: side+(Math.random()-0.5)*1.5, y:-22+Math.random()*40, z:(Math.random()-0.5)*2-5, r:0.12, g:0.0, b:0.0, s:0.7 };
     }
-    // crossbeam
     if (t < 0.42) return { x:(Math.random()-0.5)*36, y:14+(Math.random()-0.5)*1, z:(Math.random()-0.5)*1.5-5, r:0.18, g:0.0, b:0.0, s:0.7 };
-    // rising smoke
     if (t < 0.65) {
         const a = Math.random()*6.28, rad = Math.random()*26;
         return { x: rad*Math.cos(a)*0.8, y: -20+Math.random()*52, z: rad*Math.sin(a)*0.5, r:0.45, g:0.0, b:0.0, s:0.45 };
     }
-    // floating red embers
     if (t < 0.82) return { x:(Math.random()-0.5)*65, y:(Math.random()-0.5)*45, z:(Math.random()-0.5)*30, r:0.9, g:0.0, b:0.0, s:0.22 };
-    // rest hidden below floor
     return { x:0, y:-300, z:0, r:0, g:0, b:0, s:0 };
 }
 
-// ── hand tracking ─────────────────────────────────────────────────────────
+// ── DOM refs & state ───────────────────────────────────────────────────────
+const voidEye     = document.getElementById('void-eye');
+const sukunaGuide = document.getElementById('sukuna-guide');
+
+// Web Audio API — more reliable than <audio> for programmatic playback.
+// encodeURIComponent handles the spaces + brackets in the filename properly.
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+let voidBuffer       = null;
+let voidSource       = null;
+let voidPlaybackPos  = 0;   // where in the track we last stopped
+let voidAudioStartCtx = 0;  // audioCtx.currentTime when playback began
+
+fetch('./References/sfx/' + encodeURIComponent('Gojo Domain Expansion sound effect [MQQi5EaMzbs].opus'))
+    .then(r => { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); })
+    .then(buf => audioCtx.decodeAudioData(buf))
+    .then(decoded => { voidBuffer = decoded; })
+    .catch(err => console.warn('void audio failed to load:', err));
+
+function playVoidAudio() {
+    if (!voidBuffer || voidSource) return; // not loaded yet, or already running
+    audioCtx.resume().then(() => {
+        const from = voidPlaybackPos % voidBuffer.duration;
+        voidSource = audioCtx.createBufferSource();
+        voidSource.buffer = voidBuffer;
+        voidSource.loop   = true;
+        voidSource.connect(audioCtx.destination);
+        voidSource.start(0, from);
+        voidAudioStartCtx = audioCtx.currentTime - from;
+    });
+}
+
+function stopVoidAudio() {
+    if (voidSource) {
+        // save position so next play picks up where it left off
+        voidPlaybackPos = (audioCtx.currentTime - voidAudioStartCtx) % voidBuffer.duration;
+        try { voidSource.stop(0); } catch (_) {}
+        voidSource.disconnect();
+        voidSource = null;
+    }
+}
+
 let currentTech = 'neutral';
 let lerpRate    = 0.1;
 let shakeDecay  = 0;
 let shakeTime   = 0;
 let glowColor   = '#00ffff';
 
-const techTheme = {
-    neutral: { color: '#00ffff', shadow: 'rgba(0,255,255,0.5)',   bloom: 1.0  },
-    purple:  { color: '#cc00ff', shadow: 'rgba(180,0,255,0.7)',   bloom: 4.0  },
-    blue:    { color: '#0099ff', shadow: 'rgba(0,150,255,0.7)',   bloom: 3.5  },
-    red:     { color: '#ff3333', shadow: 'rgba(255,50,50,0.7)',   bloom: 2.5  },
-    void:    { color: '#ffffff', shadow: 'rgba(255,255,255,0.6)', bloom: 2.2  },
-    shrine:  { color: '#ff2200', shadow: 'rgba(255,30,0,0.7)',    bloom: 2.5  },
-};
+// gesture debounce — prevents spasmodic flickering between states
+// a gesture must win CONFIRM_FRAMES in a row before it locks in,
+// and neutral needs NEUTRAL_GRACE frames of empty hands before we reset
+let candidateTech  = 'neutral';
+let candidateCount = 0;
+let neutralFrames  = 0;
+const CONFIRM_FRAMES = 10;
+const NEUTRAL_GRACE  = 30;
 
+const techTheme = {
+    neutral: { color: '#00ffff', shadow: 'rgba(0,255,255,0.5)',   bloom: 1.0 },
+    purple:  { color: '#cc00ff', shadow: 'rgba(180,0,255,0.7)',   bloom: 4.0 },
+    blue:    { color: '#0099ff', shadow: 'rgba(0,150,255,0.7)',   bloom: 3.5 },
+    red:     { color: '#ff3333', shadow: 'rgba(255,50,50,0.7)',   bloom: 2.5 },
+    void:    { color: '#ffffff', shadow: 'rgba(255,255,255,0.6)', bloom: 2.2 },
+    shrine:  { color: '#ff2200', shadow: 'rgba(255,30,0,0.7)',    bloom: 2.5 },
+};
 const techNames = {
     neutral: 'CURSED ENERGY',
     purple:  'SECRET TECHNIQUE: HOLLOW PURPLE',
@@ -362,6 +560,7 @@ const techNames = {
     shrine:  'DOMAIN EXPANSION: MALEVOLENT SHRINE',
 };
 
+// ── hand tracking ─────────────────────────────────────────────────────────
 const video  = document.querySelector('.input_video');
 const canvas = document.getElementById('output_canvas');
 const ctx    = canvas.getContext('2d');
@@ -373,64 +572,145 @@ hands.onResults(results => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     let detected = 'neutral';
 
-    if (results.multiHandLandmarks) {
+    if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+        // draw all skeletons first
         results.multiHandLandmarks.forEach(lm => {
             drawConnectors(ctx, lm, HAND_CONNECTIONS, { color: glowColor, lineWidth: 4 });
             drawLandmarks(ctx, lm, { color: '#fff', lineWidth: 1, radius: 2 });
-
-            const up    = (tip, pip) => lm[tip].y < lm[pip].y;
-            const pinch = Math.hypot(lm[8].x - lm[4].x, lm[8].y - lm[4].y);
-
-            if (pinch < 0.04) {
-                detected = 'purple';
-            } else if (!up(8,6) && !up(12,10) && !up(16,14) && !up(20,18)) {
-                detected = 'blue';   // closed fist
-            } else if (up(8,6) && up(12,10) && up(16,14) && up(20,18)) {
-                detected = 'shrine'; // open hand
-            } else if (up(8,6) && up(12,10) && !up(16,14)) {
-                detected = 'void';   // two fingers
-            } else if (up(8,6) && !up(12,10)) {
-                detected = 'red';    // index only
-            }
         });
+
+        if (results.multiHandLandmarks.length >= 2) {
+            // ── two hands in frame — single-hand gestures suppressed entirely ──
+            // this stops void/blue/red from randomly firing while you're
+            // positioning both hands for the Sukuna sign
+            const a = results.multiHandLandmarks[0];
+            const b = results.multiHandLandmarks[1];
+
+            sukunaGuide.classList.add('two-hands');
+
+            const wristGap = Math.hypot(a[0].x - b[0].x, a[0].y - b[0].y);
+            const thumbGap = Math.hypot(a[4].x - b[4].x, a[4].y - b[4].y);
+            const indexGap = Math.hypot(a[8].x - b[8].x, a[8].y - b[8].y);
+            const allUp    = lm => lm[8].y < lm[6].y && lm[12].y < lm[10].y
+                                && lm[16].y < lm[14].y && lm[20].y < lm[18].y;
+
+            // two ways to trigger: classic diamond mudra OR both hands open (prayer)
+            const isDiamond = wristGap < 0.55 && thumbGap < 0.18 && indexGap < 0.18;
+            const isPrayer  = wristGap < 0.4  && allUp(a) && allUp(b);
+
+            if (isDiamond || isPrayer) {
+                detected = 'shrine';
+                sukunaGuide.classList.add('matched');
+            } else {
+                sukunaGuide.classList.remove('matched');
+            }
+
+        } else {
+            // ── single hand — normal gesture detection ────────────────────
+            sukunaGuide.classList.remove('two-hands', 'matched');
+            results.multiHandLandmarks.forEach(lm => {
+                const up    = (tip, pip) => lm[tip].y < lm[pip].y;
+                const pinch = Math.hypot(lm[8].x - lm[4].x, lm[8].y - lm[4].y);
+
+                if      (pinch < 0.04)                                        detected = 'purple';
+                else if (!up(8,6) && !up(12,10) && !up(16,14) && !up(20,18)) detected = 'blue';
+                else if (up(8,6) && up(12,10) && !up(16,14))                 detected = 'void';
+                else if (up(8,6) && !up(12,10))                              detected = 'red';
+            });
+        }
+    } else {
+        sukunaGuide.classList.remove('two-hands', 'matched');
     }
-    updateState(detected);
+
+    commitDetected(detected);
 });
+
+// run every detection result through the debounce gate before touching state
+function commitDetected(detected) {
+    if (detected !== 'neutral') {
+        neutralFrames = 0; // something real is in frame — reset the neutral timer
+
+        if (detected === candidateTech) {
+            if (candidateCount < CONFIRM_FRAMES) candidateCount++;
+            // gesture held long enough — lock it in (cap prevents calling every frame)
+            if (candidateCount >= CONFIRM_FRAMES) {
+                updateState(detected);
+            }
+        } else {
+            // switched to a different gesture — start counting fresh
+            candidateTech  = detected;
+            candidateCount = 1;
+        }
+    } else {
+        // nothing detected this frame — tick the grace period
+        neutralFrames++;
+        if (neutralFrames >= NEUTRAL_GRACE) {
+            // truly empty for a while, go neutral
+            candidateTech  = 'neutral';
+            candidateCount = 0;
+            updateState('neutral');
+        }
+        // otherwise: hands dropped for just a moment, ignore it
+    }
+}
 
 function updateState(tech) {
     if (currentTech === tech) return;
     currentTech = tech;
 
-    const theme   = techTheme[tech] || techTheme.neutral;
-    const nameEl  = document.getElementById('technique-name');
-    nameEl.innerText      = techNames[tech] || '';
-    nameEl.style.color    = theme.color;
+    const theme  = techTheme[tech] || techTheme.neutral;
+    const nameEl = document.getElementById('technique-name');
+    nameEl.innerText        = techNames[tech] || '';
+    nameEl.style.color      = theme.color;
     nameEl.style.textShadow = `0 0 12px ${theme.shadow}`;
-    bloomPass.strength    = theme.bloom;
-    glowColor             = theme.color;
-    lerpRate              = tech === 'neutral' ? 0.07 : 0.15;
-    shakeDecay            = tech !== 'neutral' ? 1.0 : 0;
-    shakeTime             = 0;
+    bloomPass.strength      = theme.bloom;
+    glowColor               = theme.color;
+    lerpRate                = tech === 'neutral' ? 0.07 : 0.15;
+    shakeDecay              = tech !== 'neutral' ? 1.0 : 0;
+    shakeTime               = 0;
 
+    // void eye overlay + audio
+    if (tech === 'void') {
+        voidEye.classList.add('active');
+        playVoidAudio();
+    } else {
+        voidEye.classList.remove('active');
+        stopVoidAudio();
+    }
+
+    // void is handled by animateVoid every frame — skip the generic loop for it
+    if (tech === 'void') {
+        voidTime = 0;
+        // give every particle a stable random seed and bake background sphere positions
+        for (let i = 0; i < COUNT; i++) {
+            voidPhases[i] = Math.random();
+            if (i >= COUNT * 0.30) {
+                const rad = 38 + Math.random() * 80;
+                const th  = Math.random() * 6.28;
+                const ph  = Math.acos(2 * Math.random() - 1);
+                voidBgPositions[i*3]   = rad * Math.sin(ph) * Math.cos(th);
+                voidBgPositions[i*3+1] = rad * Math.sin(ph) * Math.sin(th);
+                voidBgPositions[i*3+2] = rad * Math.cos(ph);
+            }
+        }
+        animateVoid(0); // seed initial targets so the lerp starts from something sensible
+        return;
+    }
+
+    // all other techniques — set static targets once
     for (let i = 0; i < COUNT; i++) {
         let p;
         if (tech === 'neutral') {
-            // just a faint whisper of particles
             p = i < COUNT * 0.04
                 ? (() => { const r=15+Math.random()*18, th=Math.random()*6.28, ph=Math.random()*3.14; return { x:r*Math.sin(ph)*Math.cos(th), y:r*Math.sin(ph)*Math.sin(th), z:r*Math.cos(ph), r:0.05, g:0.05, b:0.15, s:0.3 }; })()
                 : { x:0, y:0, z:0, r:0, g:0, b:0, s:0 };
         } else if (tech === 'red')    p = getRed(i);
-        else if (tech === 'void')     p = getVoid(i);
         else if (tech === 'purple')   p = getPurple(i);
         else if (tech === 'blue')     p = getBlue(i);
         else if (tech === 'shrine')   p = getShrine(i);
 
-        targetPositions[i*3]   = p.x;
-        targetPositions[i*3+1] = p.y;
-        targetPositions[i*3+2] = p.z;
-        targetColors[i*3]      = p.r;
-        targetColors[i*3+1]    = p.g;
-        targetColors[i*3+2]    = p.b;
+        targetPositions[i*3]   = p.x;  targetPositions[i*3+1] = p.y;  targetPositions[i*3+2] = p.z;
+        targetColors[i*3]      = p.r;  targetColors[i*3+1]    = p.g;  targetColors[i*3+2]    = p.b;
         targetSizes[i]         = p.s;
     }
 }
@@ -441,15 +721,15 @@ const cam = new Camera(video, {
         canvas.height = video.videoHeight;
         await hands.send({ image: video });
     },
-    width: 640, height: 480
+    width: 640, height: 480,
 });
 cam.start();
 
-// ── animation loop ────────────────────────────────────────────────────────
+// ── animation loop ─────────────────────────────────────────────────────────
 function animate() {
     requestAnimationFrame(animate);
 
-    // sinusoidal decaying screen shake — way more cinematic than pure random
+    // sinusoidal decaying shake
     if (shakeDecay > 0.01) {
         shakeDecay *= 0.96;
         const amp = shakeDecay * 10;
@@ -462,33 +742,32 @@ function animate() {
         shakeDecay = 0;
     }
 
-    // lerp particles toward targets
     const pos = geo.attributes.position.array;
     const col = geo.attributes.color.array;
     const siz = geo.attributes.size.array;
-
     for (let i = 0; i < COUNT * 3; i++) {
         pos[i] += (targetPositions[i] - pos[i]) * lerpRate;
         col[i] += (targetColors[i]    - col[i]) * lerpRate;
     }
-    for (let i = 0; i < COUNT; i++) {
-        siz[i] += (targetSizes[i] - siz[i]) * lerpRate;
-    }
+    for (let i = 0; i < COUNT; i++) siz[i] += (targetSizes[i] - siz[i]) * lerpRate;
 
     geo.attributes.position.needsUpdate = true;
     geo.attributes.color.needsUpdate    = true;
     geo.attributes.size.needsUpdate     = true;
 
-    // per-technique rotation feel
     if      (currentTech === 'red')    { particles.rotation.z -= 0.08; }
     else if (currentTech === 'purple') { particles.rotation.z += 0.18; particles.rotation.y += 0.04; }
     else if (currentTech === 'blue')   { particles.rotation.z -= 0.04; particles.rotation.y += 0.02; }
-    else if (currentTech === 'void')   { particles.rotation.y += 0.01; }
-    else if (currentTech === 'shrine') { particles.rotation.set(0, 0, 0); } // held upright
+    else if (currentTech === 'void')   {
+        // no group rotation — particles animate individually via animateVoid
+        particles.rotation.set(0, 0, 0);
+        voidTime += 0.016;
+        animateVoid(voidTime);
+    }
+    else if (currentTech === 'shrine') { particles.rotation.set(0, 0, 0); }
     else                               { particles.rotation.y += 0.004; }
 
-    starField.rotation.y += 0.0003; // slow star drift
-
+    starField.rotation.y += 0.0003;
     composer.render();
 }
 animate();
