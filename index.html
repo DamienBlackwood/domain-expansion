@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Domain Expansion</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: #000;
+            font-family: 'Courier New', sans-serif;
+        }
+
+        #ui {
+            position: absolute;
+            top: 8%;
+            width: 100%;
+            text-align: center;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        h1 {
+            font-size: 3rem;
+            margin: 0;
+            letter-spacing: 10px;
+            font-weight: 900;
+            background: linear-gradient(to bottom, #fff 30%, #555);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        #technique-name {
+            font-size: 1.1rem;
+            margin-top: 14px;
+            font-weight: bold;
+            letter-spacing: 5px;
+            text-transform: uppercase;
+            color: #00ffff;
+            text-shadow: 0 0 12px rgba(0, 255, 255, 0.5);
+            transition: color 0.35s ease, text-shadow 0.35s ease;
+        }
+
+        /* camera window — properly centered now */
+        #video-container {
+            position: absolute;
+            bottom: 2%;
+            left: 50%;
+            transform: translateX(-50%) scaleX(-1);
+            width: 280px;
+            height: 200px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            z-index: 20;
+            background: #000;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.9);
+        }
+
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.75;
+        }
+
+        #output_canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* film grain — cranked up noise frequency for finer texture */
+        #grain {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 5;
+            opacity: 0.045;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        }
+
+        /* gesture cheat-sheet, bottom right */
+        #hints {
+            position: fixed;
+            bottom: 14px;
+            right: 18px;
+            z-index: 30;
+            color: rgba(255, 255, 255, 0.28);
+            font-size: 0.6rem;
+            letter-spacing: 1.5px;
+            text-align: right;
+            pointer-events: none;
+            line-height: 1.9;
+        }
+
+        .h-gesture { margin-right: 8px; opacity: 0.55; }
+    </style>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+</head>
+<body>
+
+<div id="grain"></div>
+
+<div id="ui">
+    <h1>呪術廻戦</h1>
+    <div id="technique-name">CURSED ENERGY</div>
+</div>
+
+<div id="video-container">
+    <video class="input_video"></video>
+    <canvas id="output_canvas"></canvas>
+</div>
+
+<!-- gesture hints -->
+<div id="hints">
+    <div><span class="h-gesture">pinch</span>Hollow Purple</div>
+    <div><span class="h-gesture">fist</span>Blue</div>
+    <div><span class="h-gesture">index up</span>Red</div>
+    <div><span class="h-gesture">two fingers</span>Infinite Void</div>
+    <div><span class="h-gesture">open hand</span>Malevolent Shrine</div>
+</div>
+
+<script type="module">
+import * as THREE from 'three';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass }     from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+
+// ── scene ──────────────────────────────────────────────────────────────────
+const scene  = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(75, innerWidth / innerHeight, 0.1, 1000);
+camera.position.z = 55;
+
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+renderer.setSize(innerWidth, innerHeight);
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+document.body.appendChild(renderer.domElement);
+
+const composer  = new EffectComposer(renderer);
+const bloomPass = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 1.5, 0.4, 0.85);
+composer.addPass(new RenderPass(scene, camera));
+composer.addPass(bloomPass);
+
+// ── custom shader — circular soft particles with real per-particle size ────
+//   (PointsMaterial can't do this without a shader)
+const vertShader = `
+    attribute vec3 color;
+    attribute float size;
+    varying vec3 vColor;
+
+    void main() {
+        vColor = color;
+        vec4 mv = modelViewMatrix * vec4(position, 1.0);
+        gl_PointSize = size * (280.0 / -mv.z);
+        gl_Position  = projectionMatrix * mv;
+    }
+`;
+
+const fragShader = `
+    varying vec3 vColor;
+
+    void main() {
+        vec2  uv = gl_PointCoord - 0.5;
+        float d  = length(uv);
+        if (d > 0.5) discard;
+        float a  = 1.0 - smoothstep(0.2, 0.5, d);
+        gl_FragColor = vec4(vColor, a);
+    }
+`;
+
+// ── main particle system ───────────────────────────────────────────────────
+const COUNT = 20000;
+const geo   = new THREE.BufferGeometry();
+
+const positions       = new Float32Array(COUNT * 3);
+const colors          = new Float32Array(COUNT * 3);
+const sizes           = new Float32Array(COUNT);
+const targetPositions = new Float32Array(COUNT * 3);
+const targetColors    = new Float32Array(COUNT * 3);
+const targetSizes     = new Float32Array(COUNT);
+
+geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+geo.setAttribute('color',    new THREE.BufferAttribute(colors,    3));
+geo.setAttribute('size',     new THREE.BufferAttribute(sizes,     1));
+
+const mat = new THREE.ShaderMaterial({
+    vertexShader:   vertShader,
+    fragmentShader: fragShader,
+    blending:       THREE.AdditiveBlending,
+    transparent:    true,
+    depthWrite:     false,
+});
+
+const particles = new THREE.Points(geo, mat);
+particles.frustumCulled = false;
+scene.add(particles);
+
+// ── static star field — always visible behind techniques ──────────────────
+const STARS   = 2000;
+const starGeo = new THREE.BufferGeometry();
+const starPos = new Float32Array(STARS * 3);
+for (let i = 0; i < STARS; i++) {
+    const r  = 90 + Math.random() * 130;
+    const th = Math.random() * Math.PI * 2;
+    const ph = Math.acos(2 * Math.random() - 1);
+    starPos[i*3]   = r * Math.sin(ph) * Math.cos(th);
+    starPos[i*3+1] = r * Math.sin(ph) * Math.sin(th);
+    starPos[i*3+2] = r * Math.cos(ph);
+}
+starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
+const starField = new THREE.Points(starGeo, new THREE.PointsMaterial({
+    size: 0.12, color: 0xffffff,
+    blending: THREE.AdditiveBlending,
+    transparent: true, depthWrite: false, opacity: 0.55
+}));
+scene.add(starField);
+
+// ── technique generators ──────────────────────────────────────────────────
+
+function getRed(i) {
+    const t = i / COUNT;
+    // white-hot core
+    if (t < 0.05) {
+        const r = Math.random() * 4, th = Math.random() * 6.28, ph = Math.acos(2*Math.random()-1);
+        return { x: r*Math.sin(ph)*Math.cos(th), y: r*Math.sin(ph)*Math.sin(th), z: r*Math.cos(ph), r:3.0, g:2.5, b:2.0, s:3.0 };
+    }
+    // red inner burst
+    if (t < 0.15) {
+        const r = 4+Math.random()*5, th = Math.random()*6.28, ph = Math.acos(2*Math.random()-1);
+        return { x: r*Math.sin(ph)*Math.cos(th), y: r*Math.sin(ph)*Math.sin(th), z: r*Math.cos(ph), r:3.0, g:0.05, b:0.0, s:2.0 };
+    }
+    // 5 jagged spiral arms
+    const arm   = i % 5;
+    const angle = t*22 + arm*(Math.PI*2/5) + (Math.random()-0.5)*0.3;
+    const rad   = 10 + t*32;
+    const jit   = (Math.random()-0.5) * 2.5 * t;
+    return { x: rad*Math.cos(angle)+jit, y: rad*Math.sin(angle)+jit, z: (Math.random()-0.5)*12*t, r:1.8, g:0.0, b:0.0, s: Math.random()<0.08 ? 2.0 : 0.7 };
+}
+
+function getVoid(i) {
+    const t = i / COUNT;
+    // bright inner event horizon
+    if (t < 0.06) {
+        const a = Math.random() * Math.PI * 2;
+        return { x: 20*Math.cos(a), y: 20*Math.sin(a), z: (Math.random()-0.5)*0.5, r:2.5, g:2.5, b:2.5, s:2.2 };
+    }
+    // mid ring
+    if (t < 0.12) {
+        const a = Math.random() * Math.PI * 2;
+        return { x: 34*Math.cos(a), y: 34*Math.sin(a), z: (Math.random()-0.5)*1.2, r:0.4, g:0.8, b:1.8, s:1.2 };
+    }
+    // outer faint ring
+    if (t < 0.18) {
+        const a = Math.random() * Math.PI * 2;
+        return { x: 52*Math.cos(a), y: 52*Math.sin(a), z: (Math.random()-0.5)*2, r:0.1, g:0.3, b:0.9, s:0.7 };
+    }
+    // vertical infinite-information pillar
+    if (t < 0.30) {
+        return { x: (Math.random()-0.5)*1.5, y: (Math.random()-0.5)*65, z: (Math.random()-0.5)*1.5, r:1.5, g:1.5, b:1.5, s:0.45 };
+    }
+    // deep cosmic background
+    const rad = 38 + Math.random()*80, th = Math.random()*6.28, ph = Math.acos(2*Math.random()-1);
+    return { x: rad*Math.sin(ph)*Math.cos(th), y: rad*Math.sin(ph)*Math.sin(th), z: rad*Math.cos(ph), r:0.05, g:0.25, b:0.9, s:0.4 };
+}
+
+function getPurple(i) {
+    const t = i / COUNT;
+    // purple singularity at collision center
+    if (t < 0.07) {
+        const r = Math.random()*5, th = Math.random()*6.28, ph = Math.acos(2*Math.random()-1);
+        return { x: r*Math.sin(ph)*Math.cos(th), y: r*Math.sin(ph)*Math.sin(th), z: r*Math.cos(ph), r:1.8, g:0.1, b:2.5, s:3.5 };
+    }
+    // blue vortex arm spiraling from the left
+    if (t < 0.38) {
+        const s = (t-0.07)/0.31, a = s*14, rad = 5+s*22;
+        return { x: -18+rad*Math.cos(a), y: rad*Math.sin(a)*0.5, z: (Math.random()-0.5)*7, r:0.05, g:0.1, b:1.8, s:1.4 };
+    }
+    // red vortex arm spiraling from the right
+    if (t < 0.68) {
+        const s = (t-0.38)/0.3, a = -(s*14), rad = 5+s*22;
+        return { x: 18-rad*Math.cos(a), y: rad*Math.sin(a)*0.5, z: (Math.random()-0.5)*7, r:1.8, g:0.0, b:0.1, s:1.4 };
+    }
+    // outer chaotic spray
+    if (Math.random() > 0.5) return { x:(Math.random()-0.5)*90, y:(Math.random()-0.5)*90, z:(Math.random()-0.5)*45, r:0.5, g:0.0, b:0.9, s:0.5 };
+    const r = 19+Math.random()*9, th = Math.random()*6.28, ph = Math.acos(2*Math.random()-1);
+    return { x: r*Math.sin(ph)*Math.cos(th), y: r*Math.sin(ph)*Math.sin(th), z: r*Math.cos(ph), r:0.7, g:0.0, b:1.2, s:0.9 };
+}
+
+function getBlue(i) {
+    const t = i / COUNT;
+    // singularity core
+    if (t < 0.05) {
+        const r = Math.random()*3, th = Math.random()*6.28, ph = Math.acos(2*Math.random()-1);
+        return { x: r*Math.sin(ph)*Math.cos(th), y: r*Math.sin(ph)*Math.sin(th), z: r*Math.cos(ph), r:0.3, g:0.8, b:3.0, s:3.5 };
+    }
+    // 4 inward spiral arms
+    const arm   = i % 4;
+    const angle = t*16 + arm*(Math.PI*2/4);
+    const rad   = 8 + Math.random()*30;
+    return { x: rad*Math.cos(angle), y: rad*Math.sin(angle), z: (Math.random()-0.5)*10, r:0.0, g:0.2, b:2.0, s:1.1 };
+}
+
+function getShrine(i) {
+    const t = i / COUNT;
+    // sprawling dark ground aura
+    if (t < 0.22) return { x:(Math.random()-0.5)*100, y:-22+Math.random()*6, z:(Math.random()-0.5)*100, r:0.55, g:0.0, b:0.0, s:0.5 };
+    // two dark torii pillars
+    if (t < 0.33) {
+        const side = (i%2===0) ? -14 : 14;
+        return { x: side+(Math.random()-0.5)*1.5, y: -22+Math.random()*40, z: (Math.random()-0.5)*2-5, r:0.12, g:0.0, b:0.0, s:0.7 };
+    }
+    // crossbeam
+    if (t < 0.42) return { x:(Math.random()-0.5)*36, y:14+(Math.random()-0.5)*1, z:(Math.random()-0.5)*1.5-5, r:0.18, g:0.0, b:0.0, s:0.7 };
+    // rising smoke
+    if (t < 0.65) {
+        const a = Math.random()*6.28, rad = Math.random()*26;
+        return { x: rad*Math.cos(a)*0.8, y: -20+Math.random()*52, z: rad*Math.sin(a)*0.5, r:0.45, g:0.0, b:0.0, s:0.45 };
+    }
+    // floating red embers
+    if (t < 0.82) return { x:(Math.random()-0.5)*65, y:(Math.random()-0.5)*45, z:(Math.random()-0.5)*30, r:0.9, g:0.0, b:0.0, s:0.22 };
+    // rest hidden below floor
+    return { x:0, y:-300, z:0, r:0, g:0, b:0, s:0 };
+}
+
+// ── hand tracking ─────────────────────────────────────────────────────────
+let currentTech = 'neutral';
+let lerpRate    = 0.1;
+let shakeDecay  = 0;
+let shakeTime   = 0;
+let glowColor   = '#00ffff';
+
+const techTheme = {
+    neutral: { color: '#00ffff', shadow: 'rgba(0,255,255,0.5)',   bloom: 1.0  },
+    purple:  { color: '#cc00ff', shadow: 'rgba(180,0,255,0.7)',   bloom: 4.0  },
+    blue:    { color: '#0099ff', shadow: 'rgba(0,150,255,0.7)',   bloom: 3.5  },
+    red:     { color: '#ff3333', shadow: 'rgba(255,50,50,0.7)',   bloom: 2.5  },
+    void:    { color: '#ffffff', shadow: 'rgba(255,255,255,0.6)', bloom: 2.2  },
+    shrine:  { color: '#ff2200', shadow: 'rgba(255,30,0,0.7)',    bloom: 2.5  },
+};
+
+const techNames = {
+    neutral: 'CURSED ENERGY',
+    purple:  'SECRET TECHNIQUE: HOLLOW PURPLE',
+    blue:    'CURSED TECHNIQUE: BLUE',
+    red:     'REVERSE CURSED TECHNIQUE: RED',
+    void:    'DOMAIN EXPANSION: INFINITE VOID',
+    shrine:  'DOMAIN EXPANSION: MALEVOLENT SHRINE',
+};
+
+const video  = document.querySelector('.input_video');
+const canvas = document.getElementById('output_canvas');
+const ctx    = canvas.getContext('2d');
+
+const hands = new Hands({ locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${f}` });
+hands.setOptions({ maxNumHands: 2, modelComplexity: 1, minDetectionConfidence: 0.7 });
+
+hands.onResults(results => {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    let detected = 'neutral';
+
+    if (results.multiHandLandmarks) {
+        results.multiHandLandmarks.forEach(lm => {
+            drawConnectors(ctx, lm, HAND_CONNECTIONS, { color: glowColor, lineWidth: 4 });
+            drawLandmarks(ctx, lm, { color: '#fff', lineWidth: 1, radius: 2 });
+
+            const up    = (tip, pip) => lm[tip].y < lm[pip].y;
+            const pinch = Math.hypot(lm[8].x - lm[4].x, lm[8].y - lm[4].y);
+
+            if (pinch < 0.04) {
+                detected = 'purple';
+            } else if (!up(8,6) && !up(12,10) && !up(16,14) && !up(20,18)) {
+                detected = 'blue';   // closed fist
+            } else if (up(8,6) && up(12,10) && up(16,14) && up(20,18)) {
+                detected = 'shrine'; // open hand
+            } else if (up(8,6) && up(12,10) && !up(16,14)) {
+                detected = 'void';   // two fingers
+            } else if (up(8,6) && !up(12,10)) {
+                detected = 'red';    // index only
+            }
+        });
+    }
+    updateState(detected);
+});
+
+function updateState(tech) {
+    if (currentTech === tech) return;
+    currentTech = tech;
+
+    const theme   = techTheme[tech] || techTheme.neutral;
+    const nameEl  = document.getElementById('technique-name');
+    nameEl.innerText      = techNames[tech] || '';
+    nameEl.style.color    = theme.color;
+    nameEl.style.textShadow = `0 0 12px ${theme.shadow}`;
+    bloomPass.strength    = theme.bloom;
+    glowColor             = theme.color;
+    lerpRate              = tech === 'neutral' ? 0.07 : 0.15;
+    shakeDecay            = tech !== 'neutral' ? 1.0 : 0;
+    shakeTime             = 0;
+
+    for (let i = 0; i < COUNT; i++) {
+        let p;
+        if (tech === 'neutral') {
+            // just a faint whisper of particles
+            p = i < COUNT * 0.04
+                ? (() => { const r=15+Math.random()*18, th=Math.random()*6.28, ph=Math.random()*3.14; return { x:r*Math.sin(ph)*Math.cos(th), y:r*Math.sin(ph)*Math.sin(th), z:r*Math.cos(ph), r:0.05, g:0.05, b:0.15, s:0.3 }; })()
+                : { x:0, y:0, z:0, r:0, g:0, b:0, s:0 };
+        } else if (tech === 'red')    p = getRed(i);
+        else if (tech === 'void')     p = getVoid(i);
+        else if (tech === 'purple')   p = getPurple(i);
+        else if (tech === 'blue')     p = getBlue(i);
+        else if (tech === 'shrine')   p = getShrine(i);
+
+        targetPositions[i*3]   = p.x;
+        targetPositions[i*3+1] = p.y;
+        targetPositions[i*3+2] = p.z;
+        targetColors[i*3]      = p.r;
+        targetColors[i*3+1]    = p.g;
+        targetColors[i*3+2]    = p.b;
+        targetSizes[i]         = p.s;
+    }
+}
+
+const cam = new Camera(video, {
+    onFrame: async () => {
+        canvas.width  = video.videoWidth;
+        canvas.height = video.videoHeight;
+        await hands.send({ image: video });
+    },
+    width: 640, height: 480
+});
+cam.start();
+
+// ── animation loop ────────────────────────────────────────────────────────
+function animate() {
+    requestAnimationFrame(animate);
+
+    // sinusoidal decaying screen shake — way more cinematic than pure random
+    if (shakeDecay > 0.01) {
+        shakeDecay *= 0.96;
+        const amp = shakeDecay * 10;
+        const sx  = Math.sin(shakeTime * 19) * amp + Math.sin(shakeTime * 37) * amp * 0.4;
+        const sy  = Math.cos(shakeTime * 23) * amp + Math.cos(shakeTime * 13) * amp * 0.3;
+        renderer.domElement.style.transform = `translate(${sx}px, ${sy}px)`;
+        shakeTime += 0.06;
+    } else {
+        renderer.domElement.style.transform = '';
+        shakeDecay = 0;
+    }
+
+    // lerp particles toward targets
+    const pos = geo.attributes.position.array;
+    const col = geo.attributes.color.array;
+    const siz = geo.attributes.size.array;
+
+    for (let i = 0; i < COUNT * 3; i++) {
+        pos[i] += (targetPositions[i] - pos[i]) * lerpRate;
+        col[i] += (targetColors[i]    - col[i]) * lerpRate;
+    }
+    for (let i = 0; i < COUNT; i++) {
+        siz[i] += (targetSizes[i] - siz[i]) * lerpRate;
+    }
+
+    geo.attributes.position.needsUpdate = true;
+    geo.attributes.color.needsUpdate    = true;
+    geo.attributes.size.needsUpdate     = true;
+
+    // per-technique rotation feel
+    if      (currentTech === 'red')    { particles.rotation.z -= 0.08; }
+    else if (currentTech === 'purple') { particles.rotation.z += 0.18; particles.rotation.y += 0.04; }
+    else if (currentTech === 'blue')   { particles.rotation.z -= 0.04; particles.rotation.y += 0.02; }
+    else if (currentTech === 'void')   { particles.rotation.y += 0.01; }
+    else if (currentTech === 'shrine') { particles.rotation.set(0, 0, 0); } // held upright
+    else                               { particles.rotation.y += 0.004; }
+
+    starField.rotation.y += 0.0003; // slow star drift
+
+    composer.render();
+}
+animate();
+
+window.addEventListener('resize', () => {
+    camera.aspect = innerWidth / innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(innerWidth, innerHeight);
+    composer.setSize(innerWidth, innerHeight);
+});
+</script>
+</body>
+</html>
