@@ -12,7 +12,7 @@ Inspired by [SAT0RU](https://github.com/reinesana/SAT0RU) by reinesana.
 |---|---|
 | Pinch (thumb + index) | Secret Technique: Hollow Purple |
 | Closed fist | Cursed Technique: Blue |
-| Index finger up | Reverse Cursed Technique: Red |
+| Finger gun (index + thumb) | Reverse Cursed Technique: Red |
 | Index + middle up | Domain Expansion: Infinite Void |
 | Open hand | Domain Expansion: Malevolent Shrine |
 

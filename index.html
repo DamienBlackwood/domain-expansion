@@ -9,6 +9,7 @@
             overflow: hidden;
             background: #000;
             font-family: 'Courier New', sans-serif;
+            transition: background 1s ease;
         }
 
         #ui {
@@ -65,175 +66,54 @@
             background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
         }
 
-        /* ── Infinite Void eye overlay ─────────────────────────────────────── */
-        #void-eye {
-            position: fixed;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            width: 220px; height: 220px;
-            pointer-events: none;
-            z-index: 8;
-            opacity: 0;
-            transition: opacity 1.4s ease;
+        /* -- Shrine overlay --------------------------------------------------- */
+        #shrine-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            pointer-events: none; z-index: 6; opacity: 0;
+            transition: opacity 1.2s ease;
+            background: radial-gradient(ellipse at center,
+                transparent 25%, rgba(60,0,0,0.25) 55%, rgba(30,0,0,0.55) 80%, rgba(10,0,0,0.75) 100%);
         }
-        #void-eye.active { opacity: 1; }
+        #shrine-overlay.active { opacity: 1; }
 
-        /* soft outer radial glow that bleeds outward from the eye */
-        .void-glow {
-            position: absolute;
-            top: -70%; left: -70%; right: -70%; bottom: -70%;
-            border-radius: 50%;
-            background: radial-gradient(circle,
-                transparent 25%,
-                rgba(0, 180, 255, 0.12) 50%,
-                rgba(0, 80, 200, 0.08) 70%,
-                transparent 100%
-            );
-            animation: void-breathe 4s ease-in-out infinite;
-        }
-
-        /* bright event-horizon ring */
-        .void-ring {
-            position: absolute;
-            top: 18%; left: 18%; right: 18%; bottom: 18%;
-            border-radius: 50%;
-            box-shadow:
-                0 0 0 1px rgba(0, 230, 255, 0.9),
-                0 0 18px 7px rgba(0, 220, 255, 0.65),
-                0 0 50px 20px rgba(0, 140, 255, 0.28),
-                inset 0 0 20px rgba(0, 200, 255, 0.35);
-            animation: void-breathe 4s ease-in-out infinite;
-        }
-
-        /* dark void pupil */
-        .void-core {
-            position: absolute;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            width: 38%; height: 38%;
-            border-radius: 50%;
-            background: #000;
-            box-shadow: 0 0 20px 10px #000;
-        }
-
-        /* orbiting inner iris detail */
-        .void-iris {
-            position: absolute;
-            top: 50%; left: 50%;
-            width: 50%; height: 50%;
-            margin-left: -25%; margin-top: -25%;
-            border-radius: 50%;
-            border: 1px solid rgba(0, 220, 255, 0.3);
-            animation: void-spin 10s linear infinite;
-        }
-
-        @keyframes void-breathe {
-            0%, 100% { transform: scale(1);    opacity: 1;    }
-            50%       { transform: scale(1.07); opacity: 0.88; }
-        }
-
-        @keyframes void-spin {
-            from { transform: rotate(0deg);   }
-            to   { transform: rotate(360deg); }
-        }
-
-        /* white paint splashes matching the reference art */
-        .void-splash {
-            position: absolute;
-            background: rgba(255, 255, 255, 0.78);
-            filter: blur(9px);
-            border-radius: 50%;
-        }
-        .void-splash.top {
-            width: 150px; height: 30px;
-            top: -16px; left: 50%;
-            transform: translateX(-50%);
-        }
-        .void-splash.bot {
-            width: 95px; height: 20px;
-            bottom: -10px; left: 50%;
-            transform: translateX(-50%);
-        }
-        .void-splash.left {
-            width: 26px; height: 95px;
-            top: 50%; left: -14px;
-            transform: translateY(-50%);
-        }
-        .void-splash.right {
-            width: 24px; height: 82px;
-            top: 50%; right: -12px;
-            transform: translateY(-50%);
-        }
-
-        /* ── Sukuna mudra guide ────────────────────────────────────────────── */
+        /* -- Sukuna guide ----------------------------------------------------- */
         #sukuna-guide {
-            position: fixed;
-            bottom: 235px;
-            left: 18px;
-            z-index: 25;
-            opacity: 0.22;
-            transition: opacity 0.5s ease;
-            text-align: center;
-            pointer-events: none;
+            position: fixed; bottom: 235px; left: 18px; z-index: 25;
+            opacity: 0.22; transition: opacity 0.5s ease;
+            text-align: center; pointer-events: none;
         }
         #sukuna-guide img {
-            width: 82px;
-            display: block;
-            border-radius: 8px;
+            width: 82px; display: block; border-radius: 8px;
             border: 1px solid rgba(255, 30, 0, 0.3);
             transition: border-color 0.4s, box-shadow 0.4s;
         }
-        .guide-label {
-            font-size: 0.5rem;
-            letter-spacing: 2px;
-            color: rgba(255, 60, 0, 0.55);
-            margin-top: 5px;
-        }
-        /* both hands in frame — getting close */
-        #sukuna-guide.two-hands {
-            opacity: 0.65;
-        }
-        #sukuna-guide.two-hands img {
-            border-color: rgba(255, 50, 0, 0.75);
-            box-shadow: 0 0 14px rgba(255, 30, 0, 0.5);
-        }
-        /* mudra matched — flash bright */
-        #sukuna-guide.matched img {
-            box-shadow: 0 0 30px rgba(255, 40, 0, 0.95);
-        }
+        .guide-label { font-size: 0.5rem; letter-spacing: 2px; color: rgba(255, 60, 0, 0.55); margin-top: 5px; }
+        #sukuna-guide.two-hands { opacity: 0.65; }
+        #sukuna-guide.two-hands img { border-color: rgba(255, 50, 0, 0.75); box-shadow: 0 0 14px rgba(255, 30, 0, 0.5); }
+        #sukuna-guide.matched img { box-shadow: 0 0 30px rgba(255, 40, 0, 0.95); }
 
-        /* ── gesture hints ─────────────────────────────────────────────────── */
+        /* -- hints ------------------------------------------------------------ */
         #hints {
-            position: fixed;
-            bottom: 14px; right: 18px;
-            z-index: 30;
-            color: rgba(255, 255, 255, 0.28);
-            font-size: 0.6rem;
-            letter-spacing: 1.5px;
-            text-align: right;
-            pointer-events: none;
-            line-height: 1.9;
+            position: fixed; bottom: 14px; right: 18px; z-index: 30;
+            color: rgba(255,255,255,0.28); font-size: 0.6rem;
+            letter-spacing: 1.5px; text-align: right; pointer-events: none; line-height: 1.9;
         }
         .h-gesture { margin-right: 8px; opacity: 0.55; }
     </style>
 
     <script type="importmap">
-        {
-            "imports": {
-                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
-            }
-        }
+        { "imports": {
+            "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+        }}
     </script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
-
 </head>
 <body>
 
 <div id="grain"></div>
-
 <div id="ui">
     <h1>呪術廻戦</h1>
     <div id="technique-name">CURSED ENERGY</div>
@@ -244,19 +124,8 @@
     <canvas id="output_canvas"></canvas>
 </div>
 
-<!-- Infinite Void eye — layered CSS to match the reference art -->
-<div id="void-eye">
-    <div class="void-glow"></div>
-    <div class="void-ring"></div>
-    <div class="void-iris"></div>
-    <div class="void-core"></div>
-    <div class="void-splash top"></div>
-    <div class="void-splash bot"></div>
-    <div class="void-splash left"></div>
-    <div class="void-splash right"></div>
-</div>
+<div id="shrine-overlay"></div>
 
-<!-- Sukuna mudra guide — user must form this sign with both hands -->
 <div id="sukuna-guide">
     <img src="./References/Images/Sukuna/OIP-246756285.0isXDIhq0bBnpdmD7ggTZAHaK-.jpeg" alt="Sukuna mudra">
     <div class="guide-label">BOTH HANDS</div>
@@ -265,9 +134,12 @@
 <div id="hints">
     <div><span class="h-gesture">pinch</span>Hollow Purple</div>
     <div><span class="h-gesture">fist</span>Blue</div>
-    <div><span class="h-gesture">index up</span>Red</div>
-    <div><span class="h-gesture">two fingers</span>Infinite Void</div>
-    <div><span class="h-gesture">sukuna mudra</span>Malevolent Shrine</div>
+    <div><span class="h-gesture">thumb + index + middle up</span>Red</div>
+    <div><span class="h-gesture">red + blue</span>Hollow Purple</div>
+    <div><span class="h-gesture">blue + pinch</span>Hollow Purple</div>
+    <div><span class="h-gesture">open + flick</span>Release Cast</div>
+    <div><span class="h-gesture">crossed index-middle</span>Infinite Void</div>
+    <div><span class="h-gesture">diamond/prayer</span>Malevolent Shrine</div>
 </div>
 
 <script type="module">
@@ -276,7 +148,7 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass }      from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 
-// ── scene ──────────────────────────────────────────────────────────────────
+// -- scene
 const scene  = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, innerWidth / innerHeight, 0.1, 1000);
 camera.position.z = 55;
@@ -291,31 +163,9 @@ const bloomPass = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight)
 composer.addPass(new RenderPass(scene, camera));
 composer.addPass(bloomPass);
 
-// ── custom shader — real per-particle size + circular soft edges ───────────
-const vertShader = `
-    attribute vec3 color;
-    attribute float size;
-    varying vec3 vColor;
-    void main() {
-        vColor = color;
-        vec4 mv = modelViewMatrix * vec4(position, 1.0);
-        gl_PointSize = size * (280.0 / -mv.z);
-        gl_Position  = projectionMatrix * mv;
-    }
-`;
-const fragShader = `
-    varying vec3 vColor;
-    void main() {
-        vec2  uv = gl_PointCoord - 0.5;
-        float d  = length(uv);
-        if (d > 0.5) discard;
-        float a  = 1.0 - smoothstep(0.2, 0.5, d);
-        gl_FragColor = vec4(vColor, a);
-    }
-`;
-
-// ── main particle system ───────────────────────────────────────────────────
-const COUNT = 20000;
+// -- particles
+const COUNT = 30000;
+const TAU = Math.PI * 2;
 const geo   = new THREE.BufferGeometry();
 
 const positions       = new Float32Array(COUNT * 3);
@@ -325,208 +175,680 @@ const targetPositions = new Float32Array(COUNT * 3);
 const targetColors    = new Float32Array(COUNT * 3);
 const targetSizes     = new Float32Array(COUNT);
 
-// void animation — each particle gets a persistent phase seed and a stored
-// background sphere position so they can be animated every frame without drift
-let   voidTime        = 0;
-const voidPhases      = new Float32Array(COUNT);       // 0..1 random seed per particle
-const voidBgPositions = new Float32Array(COUNT * 3);   // base sphere coords for bg band
+// phase arrays for animated techniques
+const phases  = new Float32Array(COUNT);
+const phases2 = new Float32Array(COUNT);
 
 geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
 geo.setAttribute('color',    new THREE.BufferAttribute(colors,    3));
 geo.setAttribute('size',     new THREE.BufferAttribute(sizes,     1));
 
 const mat = new THREE.ShaderMaterial({
-    vertexShader: vertShader, fragmentShader: fragShader,
+    vertexShader: `
+        attribute vec3 color;
+        attribute float size;
+        varying vec3 vColor;
+        void main() {
+            vColor = color;
+            vec4 mv = modelViewMatrix * vec4(position, 1.0);
+            gl_PointSize = clamp(size * (280.0 / -mv.z), 1.0, 72.0);
+            gl_Position  = projectionMatrix * mv;
+        }
+    `,
+    fragmentShader: `
+        varying vec3 vColor;
+        void main() {
+            vec2 p = gl_PointCoord - 0.5;
+            float d = length(p) * 2.0;
+            if (d > 1.0) discard;
+
+            float core = exp(-d * d * 7.6);
+            float halo = exp(-d * d * 1.55);
+            float rimFade = 1.0 - smoothstep(0.86, 1.0, d);
+            float alpha = (core * 0.92 + halo * 0.48) * rimFade;
+
+            vec3 col = vColor * (0.64 + core * 1.02 + halo * 0.3) + vec3(halo * 0.08);
+            gl_FragColor = vec4(col, alpha);
+        }
+    `,
     blending: THREE.AdditiveBlending, transparent: true, depthWrite: false,
 });
 const particles = new THREE.Points(geo, mat);
 particles.frustumCulled = false;
 scene.add(particles);
 
-// ── static star field ──────────────────────────────────────────────────────
-const STARS   = 2000;
+// -- starfield
+const STARS = 3000;
 const starGeo = new THREE.BufferGeometry();
 const starPos = new Float32Array(STARS * 3);
 for (let i = 0; i < STARS; i++) {
-    const r  = 90 + Math.random() * 130;
-    const th = Math.random() * Math.PI * 2;
-    const ph = Math.acos(2 * Math.random() - 1);
-    starPos[i*3]   = r * Math.sin(ph) * Math.cos(th);
-    starPos[i*3+1] = r * Math.sin(ph) * Math.sin(th);
-    starPos[i*3+2] = r * Math.cos(ph);
+    const r = 90 + Math.random() * 150, th = Math.random() * 6.28, ph = Math.acos(2*Math.random()-1);
+    starPos[i*3] = r*Math.sin(ph)*Math.cos(th);
+    starPos[i*3+1] = r*Math.sin(ph)*Math.sin(th);
+    starPos[i*3+2] = r*Math.cos(ph);
 }
 starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
 const starField = new THREE.Points(starGeo, new THREE.PointsMaterial({
     size: 0.12, color: 0xffffff, blending: THREE.AdditiveBlending,
-    transparent: true, depthWrite: false, opacity: 0.55,
+    transparent: true, depthWrite: false, opacity: 0.5,
 }));
 scene.add(starField);
 
-// ── technique generators ──────────────────────────────────────────────────
+// -- technique animations
+let techTime = 0;
 
-function getRed(i) {
-    const t = i / COUNT;
-    if (t < 0.05) {
-        const r = Math.random()*4, th = Math.random()*6.28, ph = Math.acos(2*Math.random()-1);
-        return { x: r*Math.sin(ph)*Math.cos(th), y: r*Math.sin(ph)*Math.sin(th), z: r*Math.cos(ph), r:3.0, g:2.5, b:2.0, s:3.0 };
-    }
-    if (t < 0.15) {
-        const r = 4+Math.random()*5, th = Math.random()*6.28, ph = Math.acos(2*Math.random()-1);
-        return { x: r*Math.sin(ph)*Math.cos(th), y: r*Math.sin(ph)*Math.sin(th), z: r*Math.cos(ph), r:3.0, g:0.05, b:0.0, s:2.0 };
-    }
-    const arm = i % 5, angle = t*22 + arm*(Math.PI*2/5) + (Math.random()-0.5)*0.3;
-    const rad = 10 + t*32, jit = (Math.random()-0.5)*2.5*t;
-    return { x: rad*Math.cos(angle)+jit, y: rad*Math.sin(angle)+jit, z: (Math.random()-0.5)*12*t, r:1.8, g:0.0, b:0.0, s: Math.random()<0.08 ? 2.0 : 0.7 };
+// helper: fill phase arrays with random values
+function initPhases() {
+    for (let i = 0; i < COUNT; i++) { phases[i] = Math.random(); phases2[i] = Math.random(); }
 }
 
-// live void simulation — called every frame, writes directly into target arrays
-// particles orbit, flow, and breathe rather than sitting static
-function animateVoid(t) {
-    for (let i = 0; i < COUNT; i++) {
-        const ph  = voidPhases[i];    // stable per-particle seed
-        const pct = i / COUNT;
-        let x, y, z, r, g, b, s;
-
-        if (pct < 0.06) {
-            // inner event horizon — bright white, slow clockwise orbit + radius pulse
-            const angle  = ph * 6.28 + t * 0.28;
-            const radius = 20 + Math.sin(t * 1.6 + ph * 5.8) * 1.4;
-            x = radius * Math.cos(angle);
-            y = radius * Math.sin(angle);
-            z = Math.sin(t * 2.4 + ph * 7) * 0.5;
-            r = 2.5; g = 2.5; b = 2.5;
-            s = 2.0 + Math.sin(t * 3.5 + ph * 4) * 0.5;
-
-        } else if (pct < 0.12) {
-            // mid ring — blue, counter-rotates gently
-            const angle  = ph * 6.28 - t * 0.11;
-            const radius = 34 + Math.sin(t * 0.85 + ph * 4) * 2.5;
-            x = radius * Math.cos(angle);
-            y = radius * Math.sin(angle);
-            z = Math.sin(t * 1.1 + ph * 5) * 1.4;
-            r = 0.35; g = 0.75; b = 1.8; s = 1.2;
-
-        } else if (pct < 0.18) {
-            // outer ring — faint, barely drifts
-            const angle  = ph * 6.28 + t * 0.055;
-            const radius = 52 + Math.sin(t * 0.45 + ph * 3) * 3.5;
-            x = radius * Math.cos(angle);
-            y = radius * Math.sin(angle);
-            z = Math.sin(t * 0.6 + ph * 3.5) * 2.2;
-            r = 0.08; g = 0.28; b = 0.9; s = 0.7;
-
-        } else if (pct < 0.30) {
-            // infinite-information pillar — flows upward continuously
-            // each particle has a unique phase so the stream looks dense + smooth
-            const flow  = ((ph + t * 0.2) % 1.0) * 130 - 65;
-            const drift = Math.sin(t * 2.0 + ph * 9) * 0.45;
-            x = drift; y = flow; z = drift * 0.4;
-            r = 1.6; g = 1.6; b = 1.6;
-            s = 0.38 + Math.abs(Math.sin(t * 5 + ph * 6)) * 0.18;
-
-        } else {
-            // cosmic background — gentle oscillation around stored base positions
-            const bx = voidBgPositions[i*3], by = voidBgPositions[i*3+1], bz = voidBgPositions[i*3+2];
-            x = bx + Math.sin(t * 0.28 + ph * 6.1) * 1.8;
-            y = by + Math.cos(t * 0.22 + ph * 5.3) * 1.8;
-            z = bz + Math.sin(t * 0.35 + ph * 7.2) * 1.8;
-            r = 0.05; g = 0.22; b = 0.9; s = 0.4;
-        }
-
-        targetPositions[i*3]   = x;  targetPositions[i*3+1] = y;  targetPositions[i*3+2] = z;
-        targetColors[i*3]      = r;  targetColors[i*3+1]    = g;  targetColors[i*3+2]    = b;
-        targetSizes[i]         = s;
-    }
-}
-
-function getPurple(i) {
-    const t = i / COUNT;
-    if (t < 0.07) {
-        const r = Math.random()*5, th = Math.random()*6.28, ph = Math.acos(2*Math.random()-1);
-        return { x: r*Math.sin(ph)*Math.cos(th), y: r*Math.sin(ph)*Math.sin(th), z: r*Math.cos(ph), r:1.8, g:0.1, b:2.5, s:3.5 };
-    }
-    if (t < 0.38) {
-        // blue vortex arm from the left
-        const s = (t-0.07)/0.31, a = s*14, rad = 5+s*22;
-        return { x: -18+rad*Math.cos(a), y: rad*Math.sin(a)*0.5, z: (Math.random()-0.5)*7, r:0.05, g:0.1, b:1.8, s:1.4 };
-    }
-    if (t < 0.68) {
-        // red vortex arm from the right
-        const s = (t-0.38)/0.3, a = -(s*14), rad = 5+s*22;
-        return { x: 18-rad*Math.cos(a), y: rad*Math.sin(a)*0.5, z: (Math.random()-0.5)*7, r:1.8, g:0.0, b:0.1, s:1.4 };
-    }
-    if (Math.random() > 0.5) return { x:(Math.random()-0.5)*90, y:(Math.random()-0.5)*90, z:(Math.random()-0.5)*45, r:0.5, g:0.0, b:0.9, s:0.5 };
-    const r = 19+Math.random()*9, th = Math.random()*6.28, ph = Math.acos(2*Math.random()-1);
-    return { x: r*Math.sin(ph)*Math.cos(th), y: r*Math.sin(ph)*Math.sin(th), z: r*Math.cos(ph), r:0.7, g:0.0, b:1.2, s:0.9 };
-}
-
-function getBlue(i) {
-    const t = i / COUNT;
-    if (t < 0.05) {
-        const r = Math.random()*3, th = Math.random()*6.28, ph = Math.acos(2*Math.random()-1);
-        return { x: r*Math.sin(ph)*Math.cos(th), y: r*Math.sin(ph)*Math.sin(th), z: r*Math.cos(ph), r:0.3, g:0.8, b:3.0, s:3.5 };
-    }
-    const arm = i%4, angle = t*16 + arm*(Math.PI*2/4);
-    const rad  = 8 + Math.random()*30;
-    return { x: rad*Math.cos(angle), y: rad*Math.sin(angle), z: (Math.random()-0.5)*10, r:0.0, g:0.2, b:2.0, s:1.1 };
-}
-
-function getShrine(i) {
-    const t = i / COUNT;
-    if (t < 0.22) return { x:(Math.random()-0.5)*100, y:-22+Math.random()*6, z:(Math.random()-0.5)*100, r:0.55, g:0.0, b:0.0, s:0.5 };
-    if (t < 0.33) {
-        const side = (i%2===0) ? -14 : 14;
-        return { x: side+(Math.random()-0.5)*1.5, y:-22+Math.random()*40, z:(Math.random()-0.5)*2-5, r:0.12, g:0.0, b:0.0, s:0.7 };
-    }
-    if (t < 0.42) return { x:(Math.random()-0.5)*36, y:14+(Math.random()-0.5)*1, z:(Math.random()-0.5)*1.5-5, r:0.18, g:0.0, b:0.0, s:0.7 };
-    if (t < 0.65) {
-        const a = Math.random()*6.28, rad = Math.random()*26;
-        return { x: rad*Math.cos(a)*0.8, y: -20+Math.random()*52, z: rad*Math.sin(a)*0.5, r:0.45, g:0.0, b:0.0, s:0.45 };
-    }
-    if (t < 0.82) return { x:(Math.random()-0.5)*65, y:(Math.random()-0.5)*45, z:(Math.random()-0.5)*30, r:0.9, g:0.0, b:0.0, s:0.22 };
-    return { x:0, y:-300, z:0, r:0, g:0, b:0, s:0 };
-}
-
-// ── DOM refs & state ───────────────────────────────────────────────────────
-const voidEye     = document.getElementById('void-eye');
-const sukunaGuide = document.getElementById('sukuna-guide');
-
-// Web Audio API — more reliable than <audio> for programmatic playback.
-// encodeURIComponent handles the spaces + brackets in the filename properly.
-const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-let voidBuffer       = null;
-let voidSource       = null;
-let voidPlaybackPos  = 0;   // where in the track we last stopped
-let voidAudioStartCtx = 0;  // audioCtx.currentTime when playback began
-
-fetch('./References/sfx/' + encodeURIComponent('Gojo Domain Expansion sound effect [MQQi5EaMzbs].opus'))
-    .then(r => { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); })
-    .then(buf => audioCtx.decodeAudioData(buf))
-    .then(decoded => { voidBuffer = decoded; })
-    .catch(err => console.warn('void audio failed to load:', err));
-
-function playVoidAudio() {
-    if (!voidBuffer || voidSource) return; // not loaded yet, or already running
-    audioCtx.resume().then(() => {
-        const from = voidPlaybackPos % voidBuffer.duration;
-        voidSource = audioCtx.createBufferSource();
-        voidSource.buffer = voidBuffer;
-        voidSource.loop   = true;
-        voidSource.connect(audioCtx.destination);
-        voidSource.start(0, from);
-        voidAudioStartCtx = audioCtx.currentTime - from;
+// Infinite Void — concentric rings + info streams + cosmic bg
+const voidBg = new Float32Array(COUNT * 3);
+const streamDirs = [];
+for (let s = 0; s < 12; s++) {
+    const ang = (s / 12) * TAU;
+    const elev = ((s % 3) - 1) * 0.34;
+    const base = Math.cos(elev);
+    streamDirs.push({
+        x: Math.cos(ang) * base,
+        y: Math.sin(elev),
+        z: Math.sin(ang) * base,
     });
 }
+const streamBasis = streamDirs.map(v => {
+    const dir = new THREE.Vector3(v.x, v.y, v.z).normalize();
+    const ref = Math.abs(dir.y) > 0.9 ? new THREE.Vector3(1, 0, 0) : new THREE.Vector3(0, 1, 0);
+    const right = new THREE.Vector3().crossVectors(ref, dir).normalize();
+    const up = new THREE.Vector3().crossVectors(dir, right).normalize();
+    return {
+        dir: { x: dir.x, y: dir.y, z: dir.z },
+        right: { x: right.x, y: right.y, z: right.z },
+        up: { x: up.x, y: up.y, z: up.z },
+    };
+});
 
-function stopVoidAudio() {
-    if (voidSource) {
-        // save position so next play picks up where it left off
-        voidPlaybackPos = (audioCtx.currentTime - voidAudioStartCtx) % voidBuffer.duration;
-        try { voidSource.stop(0); } catch (_) {}
-        voidSource.disconnect();
-        voidSource = null;
+function animateVoid(t) {
+    for (let i = 0; i < COUNT; i++) {
+        const p = phases[i], p2 = phases2[i], pct = i / COUNT;
+        let x, y, z, r, g, b, s;
+
+        if (pct < 0.09) {
+            // concentric luminous rings around a center void (no CSS eye)
+            const lane = i % 6;
+            const laneCount = Math.max(1, Math.floor((COUNT * 0.09) / 6));
+            const u = Math.floor(i / 6) / laneCount;
+            const spin = lane % 2 === 0 ? 1 : -1;
+            const a = u * TAU + t * (0.2 + lane * 0.035) * spin;
+            const rad = 10.5 + lane * 2.15 + Math.sin(t * 1.4 + u * TAU * 2 + lane) * 0.85;
+            x = Math.cos(a) * rad;
+            y = Math.sin(a) * rad * (0.76 + lane * 0.02);
+            z = Math.sin(a * 2.2 + t * 0.9 + lane) * 1.8;
+            r = 1.35 + lane * 0.09;
+            g = 1.7 + lane * 0.08;
+            b = 2.05 + lane * 0.08;
+            s = 2.1 - lane * 0.15;
+        } else if (pct < 0.22) {
+            // halo haze, evenly distributed
+            const lane = i % 10;
+            const laneCount = Math.max(1, Math.floor((COUNT * 0.13) / 10));
+            const u = Math.floor((i - Math.floor(COUNT * 0.09)) / 10) / laneCount;
+            const a = u * TAU + lane * 0.17 + t * (0.07 + lane * 0.006);
+            const rad = 23 + lane * 1.35 + Math.sin(u * TAU * 6 + t * 0.8 + lane) * 1.2;
+            x = Math.cos(a) * rad + Math.sin(u * TAU * 9 + lane) * 0.9;
+            y = Math.sin(a) * rad * 0.72 + Math.cos(u * TAU * 7 + lane) * 0.7;
+            z = (lane - 4.5) * 0.55 + Math.sin(t * 0.5 + u * TAU * 5) * 1.5;
+            r = 0.8;
+            g = 1.15;
+            b = 1.7;
+            s = 1.15;
+        } else if (pct < 0.40) {
+            // radial light rays
+            const rayCount = 40;
+            const ray = i % rayCount;
+            const rayLenCount = Math.max(1, Math.floor((COUNT * 0.18) / rayCount));
+            const u = Math.floor((i - Math.floor(COUNT * 0.22)) / rayCount) / rayLenCount;
+            const rayA = (ray / rayCount) * TAU;
+            const dist = 19 + u * 122 + Math.sin(t * 1.7 + ray * 0.45) * 1.6;
+            const jitter = Math.sin(u * TAU * 4 + ray * 0.5 + t * 2) * 0.7;
+            x = Math.cos(rayA) * (dist + jitter);
+            y = Math.sin(rayA) * (dist + jitter) * 0.66;
+            z = (u - 0.5) * 24 + Math.cos(t * 1.2 + ray * 0.6) * 1.9;
+            const bright = 1 - u;
+            r = 1.05 + bright * 0.9;
+            g = 1.3 + bright * 0.9;
+            b = 1.7 + bright * 1.0;
+            s = 0.95 + bright * 0.75;
+        } else if (pct < 0.57) {
+            // white splash bands mirroring the reference composition
+            const clusters = 8;
+            const splashAngles = [0, Math.PI, Math.PI * 0.5, Math.PI * 1.5, Math.PI * 0.22, Math.PI * 0.78, Math.PI * 1.22, Math.PI * 1.78];
+            const cluster = i % clusters;
+            const segCount = Math.max(1, Math.floor((COUNT * 0.17) / clusters));
+            const u = Math.floor((i - Math.floor(COUNT * 0.40)) / clusters) / segCount;
+            const baseA = splashAngles[cluster];
+            const jitterA = Math.sin(u * 16 + t * 0.9 + cluster * 0.7) * 0.15;
+            const a = baseA + jitterA;
+            const spray = 30 + u * 46 + Math.sin(u * 26 + p2 * 8) * 2.8;
+            const width = (1 - u) * (2.6 + (cluster % 2 === 0 ? 1.8 : 0.8));
+            x = Math.cos(a) * spray + Math.sin(a + Math.PI * 0.5) * width * Math.sin(u * 20 + t * 1.5);
+            y = Math.sin(a) * spray * 0.62 + Math.cos(a) * width * Math.cos(u * 19 + t * 1.5);
+            z = (cluster % 2 === 0 ? 5.8 : -5.8) * (1 - u) + Math.sin(u * 15 + t + cluster) * 1.4;
+            r = 1.6;
+            g = 1.9;
+            b = 2.2;
+            s = 0.75 + (1 - u) * 0.95;
+        } else if (pct < 0.74) {
+            // infinite information streams
+            const streamCount = 24;
+            const stream = i % streamCount;
+            const segCount = Math.max(1, Math.floor((COUNT * 0.17) / streamCount));
+            const flow = (Math.floor((i - Math.floor(COUNT * 0.57)) / streamCount) / segCount + p + t * (0.2 + (stream % 5) * 0.018)) % 1;
+            const a = (stream / streamCount) * TAU + Math.sin(t * 0.22 + stream) * 0.03;
+            const rad = 27 + (stream % 3) * 3.2;
+            const swirl = Math.sin(flow * TAU * 3 + t * 2.2 + stream) * 1.15;
+            x = Math.cos(a) * rad + Math.cos(a + Math.PI * 0.5) * swirl;
+            y = 52 - flow * 104;
+            z = Math.sin(a) * rad * 0.82 + Math.sin(flow * TAU * 2 + stream) * 1.5;
+            r = 1.0;
+            g = 1.2;
+            b = 1.55;
+            s = 0.5 + (1 - flow) * 0.42;
+        } else {
+            // deep cosmic shell
+            const bx = voidBg[i*3], by = voidBg[i*3+1], bz = voidBg[i*3+2];
+            x = bx + Math.sin(t * 0.2 + p * 6) * 2.1;
+            y = by + Math.cos(t * 0.17 + p2 * 7) * 2.3;
+            z = bz + Math.sin(t * 0.23 + p * 8) * 2.1;
+            r = 0.1;
+            g = 0.34;
+            b = 1.0;
+            s = 0.42;
+        }
+        targetPositions[i*3]=x; targetPositions[i*3+1]=y; targetPositions[i*3+2]=z;
+        targetColors[i*3]=r; targetColors[i*3+1]=g; targetColors[i*3+2]=b;
+        targetSizes[i]=s;
     }
 }
+
+function getDissolveParticle(i, t) {
+    const p = phases[i];
+    const p2 = phases2[i];
+    const shell = 62 + p * 92;
+    const a = p * TAU + t * (0.08 + p2 * 0.12);
+    const wave = Math.sin(t * 0.7 + p * 9) * 2.6;
+    return {
+        x: Math.cos(a) * shell + wave,
+        y: (p2 - 0.5) * 84 + Math.cos(t * 0.5 + p2 * 11) * 6,
+        z: Math.sin(a) * shell + Math.sin(t * 0.8 + p2 * 7) * 2.2,
+        r: 0.05,
+        g: 0.11,
+        b: 0.24,
+        s: 0.16 + (1 - p2) * 0.22,
+    };
+}
+
+function animateNeutral(t) {
+    for (let i = 0; i < COUNT; i++) {
+        const pct = i / COUNT;
+        let p;
+        if (pct < 0.06) {
+            const u = phases[i];
+            const v = phases2[i];
+            const th = u * TAU + t * 0.3;
+            const ph = Math.acos(2 * v - 1);
+            const rad = 14 + u * 16 + Math.sin(t * 0.8 + u * 8) * 1.2;
+            p = {
+                x: rad * Math.sin(ph) * Math.cos(th),
+                y: rad * Math.sin(ph) * Math.sin(th),
+                z: rad * Math.cos(ph),
+                r: 0.09,
+                g: 0.14,
+                b: 0.3,
+                s: 0.32,
+            };
+        } else {
+            p = getDissolveParticle(i, t);
+        }
+        targetPositions[i*3] = p.x; targetPositions[i*3+1] = p.y; targetPositions[i*3+2] = p.z;
+        targetColors[i*3] = p.r; targetColors[i*3+1] = p.g; targetColors[i*3+2] = p.b;
+        targetSizes[i] = p.s;
+    }
+}
+
+// Red — volumetric repulsion sphere with spiral shells and axial tendrils.
+function animateRed(t) {
+    for (let i = 0; i < COUNT; i++) {
+        const p = phases[i], p2 = phases2[i], pct = i / COUNT;
+        let x, y, z, r, g, b, s;
+
+        if (pct < 0.09) {
+            // dense hot nucleus
+            const th = p * TAU + t * 2.2;
+            const ph = Math.acos(2 * p2 - 1);
+            const rad = p * p * (1.75 + Math.sin(t * 3.8) * 0.22);
+            x = rad * Math.sin(ph) * Math.cos(th);
+            y = rad * Math.sin(ph) * Math.sin(th) * 0.88;
+            z = rad * Math.cos(ph) * 0.9;
+            r = 2.2; g = 1.88; b = 1.74; s = 2.12;
+        } else if (pct < 0.34) {
+            // nested latitudinal spiral shells
+            const band = i % 9;
+            const u = (pct - 0.09) / 0.25;
+            const lat = ((band - 4) / 4) * 0.92;
+            const a = p * TAU * 2.3 + t * (1.7 + band * 0.09) + u * 7.0;
+            const shell = 8 + u * 38;
+            const latScale = Math.max(0.18, Math.cos(lat * 0.95));
+            x = Math.cos(a) * shell * latScale;
+            z = Math.sin(a) * shell * latScale;
+            y = Math.sin(lat) * (8 + u * 22) + Math.sin(a * 2 + t * 1.1) * 1.1;
+            const heat = 1 - u;
+            r = 1.02 + heat * 0.88;
+            g = 0.02 + heat * 0.06;
+            b = 0.01 + heat * 0.04;
+            s = 1.05 + heat * 0.78;
+        } else if (pct < 0.72) {
+            // outward tendrils wrapped around 3D axes
+            const lane = i % streamBasis.length;
+            const basis = streamBasis[lane];
+            const flow = (p + t * (0.34 + lane * 0.01)) % 1;
+            const dist = 10 + flow * 88;
+            const spin = t * 1.9 + p2 * TAU * 2 + lane * 0.8;
+            const swirlR = (1 - flow) * (6.5 + (lane % 3) * 1.3);
+            const swirlX = (basis.right.x * Math.cos(spin) + basis.up.x * Math.sin(spin)) * swirlR;
+            const swirlY = (basis.right.y * Math.cos(spin) + basis.up.y * Math.sin(spin)) * swirlR;
+            const swirlZ = (basis.right.z * Math.cos(spin) + basis.up.z * Math.sin(spin)) * swirlR;
+            x = basis.dir.x * dist + swirlX;
+            y = basis.dir.y * dist + swirlY;
+            z = basis.dir.z * dist + swirlZ;
+            const spark = 1 - flow;
+            r = 0.82 + spark * 0.92;
+            g = spark * 0.1;
+            b = spark * 0.035;
+            s = 0.72 + spark * 0.66;
+        } else if (pct < 0.93) {
+            // deep volumetric aftermath cloud
+            const th = p * TAU + t * 0.24;
+            const ph = Math.acos(2 * p2 - 1);
+            const rad = 22 + Math.pow(p, 0.72) * 82;
+            x = rad * Math.sin(ph) * Math.cos(th);
+            y = rad * Math.cos(ph) + Math.sin(t * 0.9 + p * 8) * 1.2;
+            z = rad * Math.sin(ph) * Math.sin(th);
+            r = 0.22 + p2 * 0.24;
+            g = 0.0;
+            b = 0.0;
+            s = 0.46;
+        } else {
+            // drifting ember dust
+            const fall = (p + t * (0.1 + p2 * 0.08)) % 1;
+            const a = p2 * TAU;
+            const rad = 26 + p * 86;
+            x = Math.cos(a) * rad;
+            y = 26 - fall * 74;
+            z = Math.sin(a) * rad;
+            r = 0.78;
+            g = 0.05;
+            b = 0.01;
+            s = 0.18 + (1 - fall) * 0.26;
+        }
+        targetPositions[i * 3] = x; targetPositions[i * 3 + 1] = y; targetPositions[i * 3 + 2] = z;
+        targetColors[i * 3] = r; targetColors[i * 3 + 1] = g; targetColors[i * 3 + 2] = b;
+        targetSizes[i] = s;
+    }
+}
+
+// Blue — volumetric singularity with collapsing shells and inflow streams.
+function animateBlue(t) {
+    for (let i = 0; i < COUNT; i++) {
+        const p = phases[i], p2 = phases2[i], pct = i / COUNT;
+        let x, y, z, r, g, b, s;
+
+        if (pct < 0.1) {
+            // dense singularity core
+            const th = p * TAU - t * 3.0;
+            const ph = Math.acos(2 * p2 - 1);
+            const rad = p * p * (1.65 + Math.sin(t * 4.1) * 0.22);
+            x = rad * Math.sin(ph) * Math.cos(th);
+            y = rad * Math.sin(ph) * Math.sin(th) * 0.86;
+            z = rad * Math.cos(ph) * 0.92;
+            r = 0.24; g = 0.66; b = 1.9; s = 2.0;
+        } else if (pct < 0.36) {
+            // 3D shells collapsing into the core
+            const band = i % 8;
+            const u = (pct - 0.1) / 0.26;
+            const lat = ((band - 3.5) / 3.5) * 0.88;
+            const orbit = p * TAU - t * (2.0 + band * 0.18) - u * 6.0;
+            const ringR = (1 - u) * (34 + band * 2.8) + 3.5;
+            const latScale = Math.max(0.2, Math.cos(lat * 0.88));
+            x = Math.cos(orbit) * ringR * latScale;
+            z = Math.sin(orbit) * ringR * latScale;
+            y = Math.sin(lat) * (10 + u * 8) + Math.sin(orbit * 2 + t * 1.2) * 1.0;
+            const cool = 1 - u;
+            r = 0.03;
+            g = 0.24 + cool * 0.24;
+            b = 0.82 + cool * 0.8;
+            s = 0.98 + cool * 0.8;
+        } else if (pct < 0.74) {
+            // inward 3D streams spiraling into singularity
+            const lane = i % streamBasis.length;
+            const basis = streamBasis[lane];
+            const flow = (p + t * (0.22 + lane * 0.012)) % 1;
+            const dist = (1 - flow) * 124 + 2;
+            const spin = t * 1.5 + lane + p2 * TAU;
+            const swirlR = flow * (4.5 + (lane % 4) * 1.2) + 0.8;
+            const swirlX = (basis.right.x * Math.cos(spin) + basis.up.x * Math.sin(spin)) * swirlR;
+            const swirlY = (basis.right.y * Math.cos(spin) + basis.up.y * Math.sin(spin)) * swirlR;
+            const swirlZ = (basis.right.z * Math.cos(spin) + basis.up.z * Math.sin(spin)) * swirlR;
+            x = basis.dir.x * dist + swirlX;
+            y = basis.dir.y * dist + swirlY;
+            z = basis.dir.z * dist + swirlZ;
+            const energy = flow;
+            r = 0.02;
+            g = 0.12 + energy * 0.24;
+            b = 0.58 + energy * 1.02;
+            s = 0.66 + energy * 0.82;
+        } else if (pct < 0.92) {
+            // deep lensing volume shell
+            const th = p * TAU - t * 0.2;
+            const ph = Math.acos(2 * p2 - 1);
+            const rad = 20 + Math.pow(p, 0.7) * 92;
+            x = rad * Math.sin(ph) * Math.cos(th);
+            y = rad * Math.cos(ph) * 0.64;
+            z = rad * Math.sin(ph) * Math.sin(th);
+            r = 0.0;
+            g = 0.08;
+            b = 0.34 + p * 0.42;
+            s = 0.47;
+        } else {
+            // cooled particulate drift
+            const d = getDissolveParticle(i, t);
+            x = d.x; y = d.y; z = d.z;
+            r = d.r * 0.3;
+            g = 0.13 + d.g * 0.85;
+            b = 0.4 + d.b * 1.2;
+            s = d.s * 0.82;
+        }
+        targetPositions[i * 3] = x; targetPositions[i * 3 + 1] = y; targetPositions[i * 3 + 2] = z;
+        targetColors[i * 3] = r; targetColors[i * 3 + 1] = g; targetColors[i * 3 + 2] = b;
+        targetSizes[i] = s;
+    }
+}
+
+// Purple — red crashes in from right, blue from left, violent fusion at center.
+function animatePurple(t) {
+    const aggro = 1 + Math.sin(t*4)*0.3;
+    for (let i = 0; i < COUNT; i++) {
+        const p = phases[i], p2 = phases2[i], pct = i / COUNT;
+        let x, y, z, r, g, b, s;
+
+        if (pct < 0.10) {
+            // violent purple core
+            const th = p*6.28+t*2.5, ph = Math.acos(2*p2-1), rad = p*(5+Math.sin(t*4)*1.5);
+            x = rad*Math.sin(ph)*Math.cos(th); y = rad*Math.sin(ph)*Math.sin(th); z = rad*Math.cos(ph);
+            r = 1.0*aggro; g = 0.05; b = 1.5*aggro;
+            s = 2.0 + Math.sin(t*6+p*10)*0.5;
+        } else if (pct < 0.35) {
+            // blue vortex from the LEFT
+            const prog = (pct - 0.10) / 0.25;
+            const dist = (1-prog)*38 + 3;
+            const angle = p*6.28 + prog*18 + t*2.2;
+            const thick = 3 + (1-prog)*5;
+            x = -dist + Math.cos(angle)*thick*(1-prog*0.4)*0.3;
+            y = Math.sin(angle)*thick*(1-prog*0.3);
+            z = Math.cos(angle+1.5)*thick*(1-prog*0.5)*0.5;
+            x += Math.sin(t*3+p*9)*1.5*prog;
+            r = 0.02+prog*0.15; g = 0.05; b = 0.6+prog*0.6; s = 1.2;
+        } else if (pct < 0.60) {
+            // red vortex from the RIGHT
+            const prog = (pct - 0.35) / 0.25;
+            const dist = (1-prog)*38 + 3;
+            const angle = p*6.28 - prog*18 - t*2.2;
+            const thick = 3 + (1-prog)*5;
+            x = dist - Math.cos(angle)*thick*(1-prog*0.4)*0.3;
+            y = Math.sin(angle)*thick*(1-prog*0.3);
+            z = Math.cos(angle+1.5)*thick*(1-prog*0.5)*0.5;
+            x += Math.sin(t*3+p*9)*1.5*prog;
+            r = 0.7+prog*0.4; g = 0.0; b = 0.03+prog*0.1; s = 1.2;
+        } else if (pct < 0.72) {
+            // blue atmosphere left
+            const th = p*6.28+t*0.3, ph = Math.acos(2*p2-1), rad = 8+p*22;
+            x = -rad*0.6+Math.sin(ph)*Math.cos(th)*rad*0.35;
+            y = Math.sin(ph)*Math.sin(th)*rad*0.5; z = Math.cos(ph)*rad*0.3;
+            r = 0.01; g = 0.03; b = 0.4; s = 0.6;
+        } else if (pct < 0.84) {
+            // red atmosphere right
+            const th = p*6.28+t*0.3, ph = Math.acos(2*p2-1), rad = 8+p*22;
+            x = rad*0.6+Math.sin(ph)*Math.cos(th)*rad*0.35;
+            y = Math.sin(ph)*Math.sin(th)*rad*0.5; z = Math.cos(ph)*rad*0.3;
+            r = 0.45; g = 0.0; b = 0.02; s = 0.6;
+        } else {
+            // collision debris
+            const th = p*6.28, ph = Math.acos(2*p2-1);
+            const burst = ((t*0.5+p)%1)*40;
+            x = burst*Math.sin(ph)*Math.cos(th); y = burst*Math.sin(ph)*Math.sin(th); z = burst*Math.cos(ph);
+            const fade = 1-((t*0.5+p)%1);
+            r = 0.5*fade; g = 0.03*fade; b = 0.6*fade; s = 0.4*fade;
+        }
+        targetPositions[i*3]=x; targetPositions[i*3+1]=y; targetPositions[i*3+2]=z;
+        targetColors[i*3]=r; targetColors[i*3+1]=g; targetColors[i*3+2]=b;
+        targetSizes[i]=s;
+    }
+}
+
+// Malevolent Shrine — the actual shrine. ground, pillars, curved roof, slashes, atmosphere.
+function animateShrine(t) {
+    for (let i = 0; i < COUNT; i++) {
+        const p = phases[i], p2 = phases2[i], pct = i / COUNT;
+        let x, y, z, r, g, b, s;
+
+        if (pct < 0.18) {
+            // cursed floor
+            const floorA = p * 6.28;
+            const floorR = Math.sqrt(p2) * 47;
+            x = Math.cos(floorA) * floorR;
+            z = Math.sin(floorA) * floorR;
+            y = -19 + Math.sin((p + p2) * 10 + t * 0.6) * 0.8;
+            r = 0.48; g = 0.01; b = 0.0; s = 1.0;
+        } else if (pct < 0.28) {
+            // front shrine pillars
+            const side = i % 2 === 0 ? -1 : 1;
+            x = side * 15 + (p - 0.5) * 2.2;
+            y = -19 + p2 * 37;
+            z = (p2 - 0.5) * 2.4;
+            r = 0.20; g = 0.02; b = 0.02; s = 1.2;
+        } else if (pct < 0.36) {
+            // crossbeam
+            x = (p - 0.5) * 38;
+            y = 16 + (p2 - 0.5) * 2.5;
+            z = (p2 - 0.5) * 6;
+            r = 0.62; g = 0.03; b = 0.01; s = 1.1;
+        } else if (pct < 0.48) {
+            // roof horns / silhouette
+            const side = i % 2 === 0 ? -1 : 1;
+            const prog = p2;
+            x = side * (8 + prog * 20);
+            y = 16 + prog * 12 - prog * prog * 8 + Math.sin(p * 9 + t * 1.2) * 0.8;
+            z = (p - 0.5) * 8;
+            r = 0.72; g = 0.05; b = 0.02; s = 0.9;
+        } else if (pct < 0.62) {
+            // rotating ritual ring beneath the gate
+            const ring = i % 3;
+            const ringR = 8 + ring * 4 + Math.sin(t * 0.9 + p * 8) * 0.4;
+            const angle = p * 6.28 + t * (0.9 + ring * 0.35);
+            x = Math.cos(angle) * ringR;
+            y = -5 + Math.sin(p2 * 6.28 + t * 1.2) * 0.8;
+            z = Math.sin(angle) * ringR;
+            r = 0.95; g = 0.22; b = 0.05; s = 0.75;
+        } else if (pct < 0.82) {
+            // cleave and dismantle streaks
+            const slashIdx = i % 10;
+            const seed = slashIdx * 1.31;
+            const slashAngle = seed * 2.7 + t * 0.5 * (slashIdx % 2 === 0 ? 1 : -1);
+            const prog = (p + t * (0.7 + (seed % 1) * 0.5)) % 1;
+            const len = 58;
+            x = Math.cos(slashAngle) * (prog - 0.5) * len;
+            y = Math.sin(slashAngle) * (prog - 0.5) * len * 0.42 + Math.sin(seed * 7) * 9;
+            z = Math.cos(slashAngle * 0.8) * (prog - 0.5) * len * 0.35;
+            const edge = prog > 0.84 ? (prog - 0.84) / 0.16 : 0;
+            r = 0.85 + edge * 2.2; g = edge * 0.5; b = edge * 0.15;
+            s = 0.5 + edge * 2.8;
+        } else if (pct < 0.93) {
+            // blood rain
+            const fall = (t * (0.35 + p * 0.4) + p2 * 1.6) % 1;
+            const rainA = p * 6.28;
+            const rainR = Math.sqrt(p2) * 38;
+            x = Math.cos(rainA) * rainR;
+            y = 28 - fall * 62;
+            z = Math.sin(rainA) * rainR;
+            r = 0.62; g = 0.0; b = 0.0; s = 0.28;
+        } else {
+            // floating ash
+            const rad = 18 + p * 55;
+            const a = p2 * 6.28 + t * 0.12;
+            x = rad * Math.cos(a);
+            y = -12 + (p - 0.5) * 14;
+            z = rad * Math.sin(a);
+            r = 0.25; g = 0.02; b = 0.02; s = 0.45;
+        }
+        targetPositions[i*3]=x; targetPositions[i*3+1]=y; targetPositions[i*3+2]=z;
+        targetColors[i*3]=r; targetColors[i*3+1]=g; targetColors[i*3+2]=b;
+        targetSizes[i]=s;
+    }
+}
+
+function easeOutCubic(x) {
+    return 1 - Math.pow(1 - x, 3);
+}
+
+function getReleaseColor(tech, alpha) {
+    if (tech === 'red') {
+        const heat = alpha * alpha;
+        return { r: 1.05 + heat * 1.15, g: 0.02 + heat * 0.52, b: 0.01 + heat * 0.44 };
+    }
+    if (tech === 'blue') return { r: 0.02, g: 0.5 + alpha * 0.35, b: 1.1 + alpha * 1.2 };
+    return { r: 0.5 + alpha * 0.8, g: 0.06 + alpha * 0.07, b: 0.9 + alpha * 1.0 };
+}
+
+function triggerRelease(tech, dx, dy) {
+    const v = new THREE.Vector3(dx * 2.2, -dy * 2.1, -0.55);
+    if (v.lengthSq() < 1e-4) v.set(0.0, 0.0, -1.0);
+    v.normalize();
+    releaseFx.active = true;
+    releaseFx.tech = tech;
+    releaseFx.age = 0;
+    releaseFx.dir.copy(v);
+    releaseFx.burst = 1.0;
+    shakeDecay = Math.max(shakeDecay, 1.25);
+}
+
+function applyReleaseOverlay(dt) {
+    if (!releaseFx.active) return;
+
+    releaseFx.age += dt;
+    const p = releaseFx.age / releaseFx.duration;
+    if (p >= 1) {
+        releaseFx.active = false;
+        releaseFx.burst = 0;
+        return;
+    }
+
+    releaseFx.burst *= 0.95;
+    const dir = releaseFx.dir;
+    const right = new THREE.Vector3().crossVectors(dir, new THREE.Vector3(0, 1, 0));
+    if (right.lengthSq() < 1e-4) right.set(1, 0, 0);
+    right.normalize();
+    const up = new THREE.Vector3().crossVectors(right, dir).normalize();
+
+    const head = easeOutCubic(p) * 118;
+    const trailLen = 42 + p * 38;
+    const releaseCount = Math.floor(COUNT * 0.33);
+
+    for (let i = 0; i < releaseCount; i++) {
+        const pct = i / releaseCount;
+        const ph = phases[i];
+        const ph2 = phases2[i];
+        let along;
+        let radius;
+        let spin;
+        let glow;
+
+        if (pct < 0.16) {
+            const u = pct / 0.16;
+            along = head + (ph2 - 0.5) * 2.8;
+            radius = (1 - u) * (5.6 * (1 - p) + 1.4);
+            spin = ph * TAU + p * 18;
+            glow = 1 - u * 0.6;
+        } else if (pct < 0.82) {
+            const u = (pct - 0.16) / 0.66;
+            along = head - u * trailLen + Math.sin(ph * 10 + p * 14) * 1.2;
+            radius = (1 - u) * (5.2 * (1 - p) + 1.0) + Math.sin(ph2 * 9 + p * 8) * 0.6;
+            spin = ph * TAU * 2.2 + u * 16 + p * 10;
+            glow = (1 - u) * (1 - p * 0.35);
+        } else {
+            const u = (pct - 0.82) / 0.18;
+            along = head + (u - 0.5) * 4;
+            radius = 9 + u * 14 + p * 20;
+            spin = ph * TAU + u * 8;
+            glow = (1 - u) * (1 - p);
+        }
+
+        const c = Math.cos(spin);
+        const s = Math.sin(spin);
+        const radialX = right.x * radius * c + up.x * radius * s;
+        const radialY = right.y * radius * c + up.y * radius * s;
+        const radialZ = right.z * radius * c + up.z * radius * s;
+
+        targetPositions[i*3] = dir.x * along + radialX;
+        targetPositions[i*3+1] = dir.y * along + radialY;
+        targetPositions[i*3+2] = dir.z * along + radialZ;
+
+        const tint = getReleaseColor(releaseFx.tech, glow);
+        targetColors[i*3] = tint.r;
+        targetColors[i*3+1] = tint.g;
+        targetColors[i*3+2] = tint.b;
+        targetSizes[i] = 0.8 + glow * (2.4 - p * 1.1);
+    }
+}
+
+// -- DOM + state
+const shrineOverlay = document.getElementById('shrine-overlay');
+const sukunaGuide   = document.getElementById('sukuna-guide');
+
+// -- audio
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+const masterGain = audioCtx.createGain();
+masterGain.connect(audioCtx.destination);
+
+const audioBank = {};
+function loadAudio(name, url) {
+    audioBank[name] = { buffer: null, source: null, gain: null, pos: 0, start: 0 };
+    fetch(url).then(r => r.ok ? r.arrayBuffer() : Promise.reject(r.status))
+        .then(buf => audioCtx.decodeAudioData(buf))
+        .then(dec => { audioBank[name].buffer = dec; })
+        .catch(e => console.warn(`${name} audio:`, e));
+}
+function playAudio(name) {
+    const b = audioBank[name]; if (!b?.buffer || b.source) return;
+    audioCtx.resume().then(() => {
+        b.gain = audioCtx.createGain();
+        b.gain.gain.setValueAtTime(0, audioCtx.currentTime);
+        b.gain.gain.linearRampToValueAtTime(0.7, audioCtx.currentTime + 1.5);
+        b.gain.connect(masterGain);
+        b.source = audioCtx.createBufferSource();
+        b.source.buffer = b.buffer; b.source.loop = true;
+        b.source.connect(b.gain);
+        b.source.start(0, b.pos % b.buffer.duration);
+        b.start = audioCtx.currentTime - b.pos;
+    });
+}
+function stopAudio(name) {
+    const b = audioBank[name]; if (!b?.source) return;
+    b.pos = (audioCtx.currentTime - b.start) % b.buffer.duration;
+    b.gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.8);
+    const src = b.source, gn = b.gain;
+    setTimeout(() => { try{src.stop()}catch(_){} src.disconnect(); gn.disconnect(); }, 900);
+    b.source = null; b.gain = null;
+}
+loadAudio('void', './References/sfx/' + encodeURIComponent('Gojo Domain Expansion sound effect [MQQi5EaMzbs].opus'));
 
 let currentTech = 'neutral';
 let lerpRate    = 0.1;
@@ -534,238 +856,500 @@ let shakeDecay  = 0;
 let shakeTime   = 0;
 let glowColor   = '#00ffff';
 
-// gesture debounce — prevents spasmodic flickering between states
-// a gesture must win CONFIRM_FRAMES in a row before it locks in,
-// and neutral needs NEUTRAL_GRACE frames of empty hands before we reset
-let candidateTech  = 'neutral';
+// debounce
+let candidateTech = 'neutral';
 let candidateCount = 0;
 let neutralFrames  = 0;
-const CONFIRM_FRAMES = 10;
-const NEUTRAL_GRACE  = 30;
+const CONFIRM = 8;
+const GRACE   = 25;
+const VOID_CONFIRM = 6;
 
 const techTheme = {
-    neutral: { color: '#00ffff', shadow: 'rgba(0,255,255,0.5)',   bloom: 1.0 },
-    purple:  { color: '#cc00ff', shadow: 'rgba(180,0,255,0.7)',   bloom: 4.0 },
-    blue:    { color: '#0099ff', shadow: 'rgba(0,150,255,0.7)',   bloom: 3.5 },
-    red:     { color: '#ff3333', shadow: 'rgba(255,50,50,0.7)',   bloom: 2.5 },
-    void:    { color: '#ffffff', shadow: 'rgba(255,255,255,0.6)', bloom: 2.2 },
-    shrine:  { color: '#ff2200', shadow: 'rgba(255,30,0,0.7)',    bloom: 2.5 },
+    neutral: { color:'#00ffff', shadow:'rgba(0,255,255,0.5)',   bloom:1.0 },
+    purple:  { color:'#cc00ff', shadow:'rgba(180,0,255,0.7)',   bloom:4.0 },
+    blue:    { color:'#36a0ff', shadow:'rgba(30,140,255,0.8)',  bloom:3.15 },
+    red:     { color:'#ff1600', shadow:'rgba(255,35,0,0.88)',   bloom:3.25 },
+    void:    { color:'#ffffff', shadow:'rgba(255,255,255,0.6)', bloom:2.2 },
+    shrine:  { color:'#ff3d1f', shadow:'rgba(255,60,20,0.8)',   bloom:3.0 },
 };
 const techNames = {
-    neutral: 'CURSED ENERGY',
-    purple:  'SECRET TECHNIQUE: HOLLOW PURPLE',
-    blue:    'CURSED TECHNIQUE: BLUE',
-    red:     'REVERSE CURSED TECHNIQUE: RED',
-    void:    'DOMAIN EXPANSION: INFINITE VOID',
-    shrine:  'DOMAIN EXPANSION: MALEVOLENT SHRINE',
+    neutral:'CURSED ENERGY', purple:'SECRET TECHNIQUE: HOLLOW PURPLE',
+    blue:'CURSED TECHNIQUE: BLUE', red:'REVERSE CURSED TECHNIQUE: RED',
+    void:'DOMAIN EXPANSION: INFINITE VOID', shrine:'DOMAIN EXPANSION: MALEVOLENT SHRINE',
 };
 
-// ── hand tracking ─────────────────────────────────────────────────────────
+const throwableTechs = new Set(['red', 'blue', 'purple']);
+let lastPalm = null;
+let lastReleaseAt = 0;
+let releaseCharge = 0;
+let trackTargetX = 0;
+let trackOffsetX = 0;
+let trackSeenFrames = 0;
+let voidStickyFrames = 0;
+const VOID_STICKY = 8;
+
+const releaseFx = {
+    active: false,
+    tech: 'neutral',
+    age: 0,
+    duration: 1.2,
+    dir: new THREE.Vector3(0, 0, -1),
+    burst: 0,
+};
+
+// -- hand tracking
 const video  = document.querySelector('.input_video');
 const canvas = document.getElementById('output_canvas');
 const ctx    = canvas.getContext('2d');
 
 const hands = new Hands({ locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${f}` });
-hands.setOptions({ maxNumHands: 2, modelComplexity: 1, minDetectionConfidence: 0.7 });
+hands.setOptions({ maxNumHands: 2, modelComplexity: 1, minDetectionConfidence: 0.7, minTrackingConfidence: 0.5 });
+
+function landmarkDist(a, ai, b, bi) {
+    return Math.hypot(a[ai].x - b[bi].x, a[ai].y - b[bi].y);
+}
+function isFingerUp(lm, tip, pip, mcp) {
+    return lm[tip].y < lm[pip].y && lm[pip].y < lm[mcp].y;
+}
+function isFingerCurled(lm, tip, pip, mcp) {
+    return lm[tip].y > lm[pip].y || lm[pip].y > lm[mcp].y;
+}
+function isFingerExtended(lm, tip, pip, mcp, wrist = 0) {
+    const tipReach = landmarkDist(lm, tip, lm, wrist);
+    const pipReach = landmarkDist(lm, pip, lm, wrist);
+    const mcpReach = landmarkDist(lm, mcp, lm, wrist);
+    return tipReach > pipReach * 1.07 && tipReach > mcpReach * 1.14;
+}
+function extendedCountNoThumb(lm) {
+    return (
+        Number(isFingerExtended(lm, 8, 6, 5)) +
+        Number(isFingerExtended(lm, 12, 10, 9)) +
+        Number(isFingerExtended(lm, 16, 14, 13)) +
+        Number(isFingerExtended(lm, 20, 18, 17))
+    );
+}
+function pairScale(handA, handB) {
+    return ((landmarkDist(handA, 0, handA, 9) + landmarkDist(handB, 0, handB, 9)) * 0.5) + 1e-6;
+}
+function getHandGesture(lm) {
+    const indexUp = isFingerUp(lm, 8, 6, 5);
+    const middleUp = isFingerUp(lm, 12, 10, 9);
+    const ringUp = isFingerUp(lm, 16, 14, 13);
+    const pinkyUp = isFingerUp(lm, 20, 18, 17);
+    const indexExtended = isFingerExtended(lm, 8, 6, 5);
+    const middleExtended = isFingerExtended(lm, 12, 10, 9);
+    const ringExtended = isFingerExtended(lm, 16, 14, 13);
+    const pinkyExtended = isFingerExtended(lm, 20, 18, 17);
+    const pinch = landmarkDist(lm, 8, lm, 4);
+    const palm = landmarkDist(lm, 0, lm, 9) + 1e-6;
+    const pinchNorm = pinch / palm;
+
+    const tipToBaseIndex = landmarkDist(lm, 8, lm, 5) / palm;
+    const tipToBaseMiddle = landmarkDist(lm, 12, lm, 9) / palm;
+    const tipToBaseRing = landmarkDist(lm, 16, lm, 13) / palm;
+    const tipToBasePinky = landmarkDist(lm, 20, lm, 17) / palm;
+    const thumbTipToWrist = landmarkDist(lm, 4, lm, 0) / palm;
+    const thumbBaseToWrist = landmarkDist(lm, 2, lm, 0) / palm;
+    const thumbIndexGap = landmarkDist(lm, 4, lm, 8) / palm;
+    const thumbSpan = landmarkDist(lm, 4, lm, 2) / palm;
+    const fistShape =
+        tipToBaseIndex < 0.78 &&
+        tipToBaseMiddle < 0.78 &&
+        tipToBaseRing < 0.78 &&
+        tipToBasePinky < 0.78;
+
+    const purplePinch = pinchNorm < 0.28 && !fistShape;
+    const blueFist =
+        fistShape &&
+        !indexExtended &&
+        !middleExtended &&
+        !ringExtended &&
+        !pinkyExtended &&
+        pinchNorm > 0.24;
+    const thumbOutScore =
+        Number(thumbTipToWrist > thumbBaseToWrist * 1.10) +
+        Number(thumbTipToWrist > 0.6) +
+        Number(thumbIndexGap > 0.42) +
+        Number(thumbSpan > 0.33);
+    const midTipToIdxTip = landmarkDist(lm, 12, lm, 8) / palm;
+    const midToIndexPip = landmarkDist(lm, 12, lm, 6) / palm;
+    const midToIndexBase = landmarkDist(lm, 12, lm, 5) / palm;
+    const idxVx = lm[8].x - lm[5].x;
+    const idxVy = lm[8].y - lm[5].y;
+    const idxLen2 = idxVx * idxVx + idxVy * idxVy + 1e-6;
+    const projT = Math.max(0, Math.min(1, ((lm[12].x - lm[5].x) * idxVx + (lm[12].y - lm[5].y) * idxVy) / idxLen2));
+    const projX = lm[5].x + projT * idxVx;
+    const projY = lm[5].y + projT * idxVy;
+    const midToIndexLine = Math.hypot(lm[12].x - projX, lm[12].y - projY) / palm;
+    const ringDown = (!ringUp && !ringExtended) || tipToBaseRing < 0.96;
+    const pinkyDown = (!pinkyUp && !pinkyExtended) || tipToBasePinky < 0.96;
+    const middleCurled = !middleUp || !middleExtended || tipToBaseMiddle < 0.9;
+    const indexMiddleClose = midTipToIdxTip < 0.78 && Math.abs(lm[8].x - lm[12].x) / palm < 0.35;
+    const middleOverIndex =
+        middleCurled &&
+        midToIndexLine < 0.42 &&
+        projT > 0.28 &&
+        projT < 0.92 &&
+        midToIndexPip < 0.9 &&
+        midToIndexBase < 1.1 &&
+        midTipToIdxTip < 1.05;
+    const redPose =
+        indexUp &&
+        middleUp &&
+        indexExtended &&
+        middleExtended &&
+        ringDown &&
+        pinkyDown &&
+        thumbOutScore >= 2 &&
+        indexMiddleClose;
+    const voidPose =
+        indexExtended &&
+        indexUp &&
+        !middleUp &&
+        ringDown &&
+        pinkyDown &&
+        middleOverIndex &&
+        pinchNorm > 0.06;
+
+    if (redPose) return 'red';
+    if (voidPose) return 'void';
+    if (purplePinch) return 'purple';
+    if (blueFist) return 'blue';
+    return 'open';
+}
+function isSukunaMudra(handA, handB) {
+    const [left, right] = handA[0].x < handB[0].x ? [handA, handB] : [handB, handA];
+    const scale = pairScale(left, right);
+
+    const leftIndexExtended = isFingerExtended(left, 8, 6, 5);
+    const rightIndexExtended = isFingerExtended(right, 8, 6, 5);
+    const leftExtCount = extendedCountNoThumb(left);
+    const rightExtCount = extendedCountNoThumb(right);
+    const curledCount =
+        Number(isFingerCurled(left, 12, 10, 9)) +
+        Number(isFingerCurled(right, 12, 10, 9)) +
+        Number(isFingerCurled(left, 16, 14, 13)) +
+        Number(isFingerCurled(right, 16, 14, 13)) +
+        Number(isFingerCurled(left, 20, 18, 17)) +
+        Number(isFingerCurled(right, 20, 18, 17));
+
+    const indexGap = landmarkDist(left, 8, right, 8) / scale;
+    const thumbGap = landmarkDist(left, 4, right, 4) / scale;
+    const middleGap = landmarkDist(left, 12, right, 12) / scale;
+    const wristGap = landmarkDist(left, 0, right, 0) / scale;
+
+    const apexY = (left[8].y + right[8].y) * 0.5;
+    const centerY = (left[12].y + right[12].y) * 0.5;
+    const thumbY = (left[4].y + right[4].y) * 0.5;
+    const apexAligned = Math.abs(left[8].y - right[8].y) < 0.22;
+    const thumbAligned = Math.abs(left[4].y - right[4].y) < 0.26;
+    const apexUp = apexY + 0.02 < centerY && centerY + 0.01 < thumbY;
+    const apexDown = thumbY + 0.02 < centerY && centerY + 0.01 < apexY;
+
+    const poseMatch =
+        leftIndexExtended && rightIndexExtended &&
+        (curledCount >= 3 || (leftExtCount <= 2 && rightExtCount <= 2));
+
+    const shapeMatch =
+        indexGap < 0.9 &&
+        thumbGap < 1.12 &&
+        middleGap < 1.26 &&
+        wristGap > 0.8 && wristGap < 3.35 &&
+        apexAligned &&
+        thumbAligned;
+
+    return poseMatch && shapeMatch && (apexUp || apexDown);
+}
+function isPrayerPose(handA, handB) {
+    const scale = pairScale(handA, handB);
+    const aOpenCount = extendedCountNoThumb(handA);
+    const bOpenCount = extendedCountNoThumb(handB);
+
+    const wristGap = landmarkDist(handA, 0, handB, 0) / scale;
+    const palmGap = landmarkDist(handA, 9, handB, 9) / scale;
+    const indexGap = landmarkDist(handA, 8, handB, 8) / scale;
+    const middleGap = landmarkDist(handA, 12, handB, 12) / scale;
+    const ringGap = landmarkDist(handA, 16, handB, 16) / scale;
+    const pinkyGap = landmarkDist(handA, 20, handB, 20) / scale;
+    const avgTipGap = (indexGap + middleGap + ringGap + pinkyGap) * 0.25;
+    const wristAligned = Math.abs(handA[0].y - handB[0].y) < 0.28;
+
+    return (
+        aOpenCount >= 3 &&
+        bOpenCount >= 3 &&
+        wristGap > 0.55 &&
+        wristGap < 3.3 &&
+        palmGap < 2.0 &&
+        indexGap < 1.45 &&
+        middleGap < 1.45 &&
+        ringGap < 1.55 &&
+        pinkyGap < 1.62 &&
+        avgTipGap < 1.42 &&
+        wristAligned
+    );
+}
 
 hands.onResults(results => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     let detected = 'neutral';
 
-    if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
-        // draw all skeletons first
+    if (results.multiHandLandmarks?.length > 0) {
         results.multiHandLandmarks.forEach(lm => {
             drawConnectors(ctx, lm, HAND_CONNECTIONS, { color: glowColor, lineWidth: 4 });
             drawLandmarks(ctx, lm, { color: '#fff', lineWidth: 1, radius: 2 });
         });
 
         if (results.multiHandLandmarks.length >= 2) {
-            // ── two hands in frame — single-hand gestures suppressed entirely ──
-            // this stops void/blue/red from randomly firing while you're
-            // positioning both hands for the Sukuna sign
             const a = results.multiHandLandmarks[0];
             const b = results.multiHandLandmarks[1];
-
             sukunaGuide.classList.add('two-hands');
+            lastPalm = null;
+            releaseCharge = 0;
+            trackSeenFrames = 0;
+            voidStickyFrames = 0;
 
-            const wristGap = Math.hypot(a[0].x - b[0].x, a[0].y - b[0].y);
-            const thumbGap = Math.hypot(a[4].x - b[4].x, a[4].y - b[4].y);
-            const indexGap = Math.hypot(a[8].x - b[8].x, a[8].y - b[8].y);
-            const allUp    = lm => lm[8].y < lm[6].y && lm[12].y < lm[10].y
-                                && lm[16].y < lm[14].y && lm[20].y < lm[18].y;
+            const gestA = getHandGesture(a);
+            const gestB = getHandGesture(b);
+            const redBlueCombo =
+                (gestA === 'red' && gestB === 'blue') ||
+                (gestA === 'blue' && gestB === 'red');
+            const bluePurpleCombo =
+                (gestA === 'blue' && gestB === 'purple') ||
+                (gestA === 'purple' && gestB === 'blue');
 
-            // two ways to trigger: classic diamond mudra OR both hands open (prayer)
-            const isDiamond = wristGap < 0.55 && thumbGap < 0.18 && indexGap < 0.18;
-            const isPrayer  = wristGap < 0.4  && allUp(a) && allUp(b);
-
-            if (isDiamond || isPrayer) {
+            if (isSukunaMudra(a, b) || isPrayerPose(a, b)) {
                 detected = 'shrine';
                 sukunaGuide.classList.add('matched');
+            } else if (redBlueCombo || bluePurpleCombo) {
+                detected = 'purple';
+                sukunaGuide.classList.remove('matched');
             } else {
                 sukunaGuide.classList.remove('matched');
             }
 
         } else {
-            // ── single hand — normal gesture detection ────────────────────
+            // single hand
             sukunaGuide.classList.remove('two-hands', 'matched');
-            results.multiHandLandmarks.forEach(lm => {
-                const up    = (tip, pip) => lm[tip].y < lm[pip].y;
-                const pinch = Math.hypot(lm[8].x - lm[4].x, lm[8].y - lm[4].y);
+            const lm = results.multiHandLandmarks[0];
+            const gesture = getHandGesture(lm);
+            const palm = lm[9];
+            const nowMs = performance.now();
+            const palmVelX = lastPalm ? palm.x - lastPalm.x : 0;
+            const palmVelY = lastPalm ? palm.y - lastPalm.y : 0;
+            const speed = Math.hypot(palmVelX, palmVelY);
 
-                if      (pinch < 0.04)                                        detected = 'purple';
-                else if (!up(8,6) && !up(12,10) && !up(16,14) && !up(20,18)) detected = 'blue';
-                else if (up(8,6) && up(12,10) && !up(16,14))                 detected = 'void';
-                else if (up(8,6) && !up(12,10))                              detected = 'red';
-            });
+            const positionTrackActive = currentTech === 'red' || currentTech === 'blue';
+            if (positionTrackActive) {
+                trackTargetX = Math.max(-1, Math.min(1, (0.5 - palm.x) * 2.0));
+                trackSeenFrames = 12;
+            } else {
+                trackTargetX = 0;
+                trackSeenFrames = 0;
+            }
+
+            if (throwableTechs.has(currentTech) && gesture !== 'open') {
+                releaseCharge = Math.min(1, releaseCharge + 0.22);
+            } else {
+                releaseCharge = Math.max(0, releaseCharge - 0.08);
+            }
+
+            const canRelease =
+                currentTech !== 'neutral' &&
+                throwableTechs.has(currentTech) &&
+                gesture === 'open' &&
+                releaseCharge > 0.48 &&
+                speed > 0.009 &&
+                nowMs - lastReleaseAt > 420;
+            if (canRelease) {
+                triggerRelease(currentTech, palmVelX, palmVelY);
+                lastReleaseAt = nowMs;
+                releaseCharge = 0;
+            }
+
+            if (gesture === 'void') {
+                voidStickyFrames = VOID_STICKY;
+                detected = 'void';
+            } else if (voidStickyFrames > 0 && currentTech === 'void' && (gesture === 'red' || gesture === 'open')) {
+                voidStickyFrames--;
+                detected = 'void';
+            } else {
+                voidStickyFrames = Math.max(0, voidStickyFrames - 1);
+                if (gesture === 'purple' || gesture === 'blue' || gesture === 'red') {
+                    detected = gesture;
+                }
+            }
+            lastPalm = { x: palm.x, y: palm.y };
         }
     } else {
         sukunaGuide.classList.remove('two-hands', 'matched');
+        lastPalm = null;
+        releaseCharge = Math.max(0, releaseCharge - 0.12);
+        trackSeenFrames = Math.max(0, trackSeenFrames - 1);
+        voidStickyFrames = Math.max(0, voidStickyFrames - 1);
     }
 
-    commitDetected(detected);
-});
-
-// run every detection result through the debounce gate before touching state
-function commitDetected(detected) {
+    // debounce
     if (detected !== 'neutral') {
-        neutralFrames = 0; // something real is in frame — reset the neutral timer
-
+        neutralFrames = 0;
         if (detected === candidateTech) {
-            if (candidateCount < CONFIRM_FRAMES) candidateCount++;
-            // gesture held long enough — lock it in (cap prevents calling every frame)
-            if (candidateCount >= CONFIRM_FRAMES) {
-                updateState(detected);
-            }
+            candidateCount++;
+            const confirmFrames = candidateTech === 'void' ? VOID_CONFIRM : CONFIRM;
+            if (candidateCount >= confirmFrames) updateState(detected);
         } else {
-            // switched to a different gesture — start counting fresh
-            candidateTech  = detected;
+            candidateTech = detected;
             candidateCount = 1;
         }
     } else {
-        // nothing detected this frame — tick the grace period
         neutralFrames++;
-        if (neutralFrames >= NEUTRAL_GRACE) {
-            // truly empty for a while, go neutral
-            candidateTech  = 'neutral';
-            candidateCount = 0;
+        if (neutralFrames >= GRACE) {
+            candidateTech = 'neutral'; candidateCount = 0;
             updateState('neutral');
         }
-        // otherwise: hands dropped for just a moment, ignore it
     }
-}
+});
 
 function updateState(tech) {
     if (currentTech === tech) return;
     currentTech = tech;
+    techTime = 0;
+    initPhases();
+    releaseFx.active = false;
+    releaseFx.burst = 0;
 
-    const theme  = techTheme[tech] || techTheme.neutral;
+    const theme = techTheme[tech] || techTheme.neutral;
     const nameEl = document.getElementById('technique-name');
-    nameEl.innerText        = techNames[tech] || '';
-    nameEl.style.color      = theme.color;
+    nameEl.innerText = techNames[tech] || '';
+    nameEl.style.color = theme.color;
     nameEl.style.textShadow = `0 0 12px ${theme.shadow}`;
-    bloomPass.strength      = theme.bloom;
-    glowColor               = theme.color;
-    lerpRate                = tech === 'neutral' ? 0.07 : 0.15;
-    shakeDecay              = tech !== 'neutral' ? 1.0 : 0;
-    shakeTime               = 0;
+    bloomPass.strength = theme.bloom;
+    glowColor = theme.color;
+    lerpRate = tech === 'neutral' ? 0.07 : 0.12;
+    shakeDecay = tech !== 'neutral' ? 1.0 : 0;
+    shakeTime = 0;
 
-    // void eye overlay + audio
+    // overlays
+    shrineOverlay.classList.toggle('active', tech === 'shrine');
     if (tech === 'void') {
-        voidEye.classList.add('active');
-        playVoidAudio();
+        document.body.style.background = `
+            radial-gradient(circle at 50% 50%, rgba(0,0,0,0.98) 0%, rgba(4,10,28,0.96) 14%, rgba(35,78,160,0.24) 24%, rgba(8,24,66,0.56) 38%, rgba(1,4,12,0.96) 70%, #000 100%),
+            radial-gradient(circle at 50% 50%, rgba(182,229,255,0.12) 0%, rgba(68,150,255,0.08) 12%, rgba(0,0,0,0) 30%)
+        `;
+        playAudio('void');
     } else {
-        voidEye.classList.remove('active');
-        stopVoidAudio();
-    }
-
-    // void is handled by animateVoid every frame — skip the generic loop for it
-    if (tech === 'void') {
-        voidTime = 0;
-        // give every particle a stable random seed and bake background sphere positions
-        for (let i = 0; i < COUNT; i++) {
-            voidPhases[i] = Math.random();
-            if (i >= COUNT * 0.30) {
-                const rad = 38 + Math.random() * 80;
-                const th  = Math.random() * 6.28;
-                const ph  = Math.acos(2 * Math.random() - 1);
-                voidBgPositions[i*3]   = rad * Math.sin(ph) * Math.cos(th);
-                voidBgPositions[i*3+1] = rad * Math.sin(ph) * Math.sin(th);
-                voidBgPositions[i*3+2] = rad * Math.cos(ph);
-            }
+        stopAudio('void');
+        if (tech === 'red') {
+            document.body.style.background = `
+                radial-gradient(circle at 52% 48%, rgba(255,255,255,0.98) 0%, rgba(255,248,248,0.72) 5%, rgba(255,50,36,0.30) 12%, rgba(180,0,0,0.06) 24%, rgba(0,0,0,0.90) 58%),
+                repeating-conic-gradient(from 8deg at 52% 48%, rgba(0,0,0,0.88) 0deg 1.2deg, rgba(245,0,0,0.95) 1.2deg 4.2deg, rgba(18,0,0,0.95) 4.2deg 5.6deg),
+                radial-gradient(circle at center, #a60000 0%, #400000 35%, #090000 70%, #000 100%)
+            `;
+        } else if (tech === 'blue') {
+            document.body.style.background = `
+                radial-gradient(circle at 50% 50%, rgba(215,245,255,0.34) 0%, rgba(130,205,255,0.14) 10%, rgba(40,115,215,0.14) 26%, rgba(2,20,52,0.92) 62%),
+                repeating-conic-gradient(from 18deg at 50% 50%, rgba(0,20,62,0.85) 0deg 2deg, rgba(0,120,255,0.26) 2deg 4deg, rgba(0,12,32,0.9) 4deg 6.2deg),
+                radial-gradient(circle at center, #0b2f69 0%, #041327 38%, #020913 66%, #000 100%)
+            `;
+        } else if (tech === 'shrine') {
+            document.body.style.background = 'radial-gradient(circle at center, #1b0604 0%, #0b0202 58%, #000 100%)';
+        } else {
+            document.body.style.background = '#000';
         }
-        animateVoid(0); // seed initial targets so the lerp starts from something sensible
-        return;
     }
 
-    // all other techniques — set static targets once
-    for (let i = 0; i < COUNT; i++) {
-        let p;
-        if (tech === 'neutral') {
-            p = i < COUNT * 0.04
-                ? (() => { const r=15+Math.random()*18, th=Math.random()*6.28, ph=Math.random()*3.14; return { x:r*Math.sin(ph)*Math.cos(th), y:r*Math.sin(ph)*Math.sin(th), z:r*Math.cos(ph), r:0.05, g:0.05, b:0.15, s:0.3 }; })()
-                : { x:0, y:0, z:0, r:0, g:0, b:0, s:0 };
-        } else if (tech === 'red')    p = getRed(i);
-        else if (tech === 'purple')   p = getPurple(i);
-        else if (tech === 'blue')     p = getBlue(i);
-        else if (tech === 'shrine')   p = getShrine(i);
+    // init void bg positions
+    if (tech === 'void') {
+        const bgStart = Math.floor(COUNT * 0.74);
+        const bgCount = COUNT - bgStart;
+        const golden = Math.PI * (3 - Math.sqrt(5));
+        for (let i = bgStart; i < COUNT; i++) {
+            const idx = i - bgStart;
+            const yNorm = 1 - ((idx + 0.5) / bgCount) * 2;
+            const radial = Math.sqrt(Math.max(0, 1 - yNorm * yNorm));
+            const th = idx * golden;
+            const rad = 64 + phases[i] * 96;
+            voidBg[i*3] = Math.cos(th) * radial * rad;
+            voidBg[i*3+1] = yNorm * rad;
+            voidBg[i*3+2] = Math.sin(th) * radial * rad;
+        }
+    }
 
-        targetPositions[i*3]   = p.x;  targetPositions[i*3+1] = p.y;  targetPositions[i*3+2] = p.z;
-        targetColors[i*3]      = p.r;  targetColors[i*3+1]    = p.g;  targetColors[i*3+2]    = p.b;
-        targetSizes[i]         = p.s;
+    // for animated techniques, seed initial targets
+    if (tech === 'void') animateVoid(0);
+    else if (tech === 'red') animateRed(0);
+    else if (tech === 'blue') animateBlue(0);
+    else if (tech === 'purple') animatePurple(0);
+    else if (tech === 'shrine') animateShrine(0);
+    else {
+        animateNeutral(0);
     }
 }
 
 const cam = new Camera(video, {
-    onFrame: async () => {
-        canvas.width  = video.videoWidth;
-        canvas.height = video.videoHeight;
-        await hands.send({ image: video });
-    },
+    onFrame: async () => { canvas.width = video.videoWidth; canvas.height = video.videoHeight; await hands.send({image:video}); },
     width: 640, height: 480,
 });
 cam.start();
 
-// ── animation loop ─────────────────────────────────────────────────────────
+// -- animation loop
 function animate() {
     requestAnimationFrame(animate);
 
-    // sinusoidal decaying shake
     if (shakeDecay > 0.01) {
         shakeDecay *= 0.96;
         const amp = shakeDecay * 10;
-        const sx  = Math.sin(shakeTime * 19) * amp + Math.sin(shakeTime * 37) * amp * 0.4;
-        const sy  = Math.cos(shakeTime * 23) * amp + Math.cos(shakeTime * 13) * amp * 0.3;
+        const sx = Math.sin(shakeTime*19)*amp + Math.sin(shakeTime*37)*amp*0.4;
+        const sy = Math.cos(shakeTime*23)*amp + Math.cos(shakeTime*13)*amp*0.3;
         renderer.domElement.style.transform = `translate(${sx}px, ${sy}px)`;
         shakeTime += 0.06;
+    } else { renderer.domElement.style.transform = ''; shakeDecay = 0; }
+
+    techTime += 0.016;
+    particles.rotation.set(0, 0, 0);
+
+    if      (currentTech === 'void')   animateVoid(techTime);
+    else if (currentTech === 'red')    animateRed(techTime);
+    else if (currentTech === 'blue')   animateBlue(techTime);
+    else if (currentTech === 'purple') animatePurple(techTime);
+    else if (currentTech === 'shrine') animateShrine(techTime);
+    else                               animateNeutral(techTime);
+
+    if (currentTech === 'red') {
+        particles.rotation.y = techTime * 0.1;
+        particles.rotation.x = Math.sin(techTime * 0.35) * 0.09;
+    } else if (currentTech === 'blue') {
+        particles.rotation.y = -techTime * 0.085;
+        particles.rotation.x = Math.cos(techTime * 0.3) * 0.08;
+    }
+
+    applyReleaseOverlay(0.016);
+
+    if (trackSeenFrames > 0) {
+        trackSeenFrames--;
     } else {
-        renderer.domElement.style.transform = '';
-        shakeDecay = 0;
+        trackTargetX *= 0.85;
+        if (Math.abs(trackTargetX) < 0.002) trackTargetX = 0;
+    }
+    trackOffsetX += (trackTargetX - trackOffsetX) * 0.18;
+    const shouldTrack = currentTech === 'red' || currentTech === 'blue';
+    if (shouldTrack) {
+        const xShift = trackOffsetX * 26;
+        for (let i = 0; i < COUNT; i++) {
+            targetPositions[i*3] += xShift;
+        }
     }
 
     const pos = geo.attributes.position.array;
     const col = geo.attributes.color.array;
     const siz = geo.attributes.size.array;
-    for (let i = 0; i < COUNT * 3; i++) {
-        pos[i] += (targetPositions[i] - pos[i]) * lerpRate;
-        col[i] += (targetColors[i]    - col[i]) * lerpRate;
+    for (let i = 0; i < COUNT*3; i++) {
+        pos[i] += (targetPositions[i]-pos[i]) * lerpRate;
+        col[i] += (targetColors[i]-col[i]) * lerpRate;
     }
-    for (let i = 0; i < COUNT; i++) siz[i] += (targetSizes[i] - siz[i]) * lerpRate;
+    for (let i = 0; i < COUNT; i++) siz[i] += (targetSizes[i]-siz[i]) * lerpRate;
 
     geo.attributes.position.needsUpdate = true;
     geo.attributes.color.needsUpdate    = true;
     geo.attributes.size.needsUpdate     = true;
-
-    if      (currentTech === 'red')    { particles.rotation.z -= 0.08; }
-    else if (currentTech === 'purple') { particles.rotation.z += 0.18; particles.rotation.y += 0.04; }
-    else if (currentTech === 'blue')   { particles.rotation.z -= 0.04; particles.rotation.y += 0.02; }
-    else if (currentTech === 'void')   {
-        // no group rotation — particles animate individually via animateVoid
-        particles.rotation.set(0, 0, 0);
-        voidTime += 0.016;
-        animateVoid(voidTime);
-    }
-    else if (currentTech === 'shrine') { particles.rotation.set(0, 0, 0); }
-    else                               { particles.rotation.y += 0.004; }
 
     starField.rotation.y += 0.0003;
     composer.render();
