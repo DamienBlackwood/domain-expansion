@@ -8,7 +8,7 @@
             margin: 0;
             overflow: hidden;
             background: #000;
-            font-family: 'Courier New', sans-serif;
+            font-family: 'Space Grotesk', 'Segoe UI', system-ui, sans-serif;
             transition: background 1s ease;
         }
 
@@ -24,7 +24,7 @@
         h1 {
             font-size: 3rem;
             margin: 0;
-            letter-spacing: 10px;
+            letter-spacing: 1.5px;
             font-weight: 900;
             background: linear-gradient(to bottom, #fff 30%, #555);
             -webkit-background-clip: text;
@@ -32,13 +32,13 @@
         }
 
         #technique-name {
-            font-size: 1.1rem;
+            font-size: 1.5rem;
             margin-top: 14px;
-            font-weight: bold;
-            letter-spacing: 5px;
-            text-transform: uppercase;
-            color: #00ffff;
-            text-shadow: 0 0 12px rgba(0, 255, 255, 0.5);
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: none;
+            color: #60e5ff;
+            text-shadow: 0 0 12px rgba(96, 229, 255, 0.55);
             transition: color 0.35s ease, text-shadow 0.35s ease;
         }
 
@@ -66,7 +66,7 @@
             background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
         }
 
-        /* -- Shrine overlay --------------------------------------------------- */
+        
         #shrine-overlay {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             pointer-events: none; z-index: 6; opacity: 0;
@@ -76,7 +76,7 @@
         }
         #shrine-overlay.active { opacity: 1; }
 
-        /* -- Sukuna guide ----------------------------------------------------- */
+        
         #sukuna-guide {
             position: fixed; bottom: 235px; left: 18px; z-index: 25;
             opacity: 0.22; transition: opacity 0.5s ease;
@@ -92,7 +92,7 @@
         #sukuna-guide.two-hands img { border-color: rgba(255, 50, 0, 0.75); box-shadow: 0 0 14px rgba(255, 30, 0, 0.5); }
         #sukuna-guide.matched img { box-shadow: 0 0 30px rgba(255, 40, 0, 0.95); }
 
-        /* -- hints ------------------------------------------------------------ */
+        
         #hints {
             position: fixed; bottom: 14px; right: 18px; z-index: 30;
             color: rgba(255,255,255,0.28); font-size: 0.6rem;
@@ -148,7 +148,6 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass }      from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 
-// -- scene
 const scene  = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, innerWidth / innerHeight, 0.1, 1000);
 camera.position.z = 55;
@@ -163,7 +162,6 @@ const bloomPass = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight)
 composer.addPass(new RenderPass(scene, camera));
 composer.addPass(bloomPass);
 
-// -- particles
 const COUNT = 30000;
 const TAU = Math.PI * 2;
 const geo   = new THREE.BufferGeometry();
@@ -175,7 +173,6 @@ const targetPositions = new Float32Array(COUNT * 3);
 const targetColors    = new Float32Array(COUNT * 3);
 const targetSizes     = new Float32Array(COUNT);
 
-// phase arrays for animated techniques
 const phases  = new Float32Array(COUNT);
 const phases2 = new Float32Array(COUNT);
 
@@ -217,7 +214,6 @@ const particles = new THREE.Points(geo, mat);
 particles.frustumCulled = false;
 scene.add(particles);
 
-// -- starfield
 const STARS = 3000;
 const starGeo = new THREE.BufferGeometry();
 const starPos = new Float32Array(STARS * 3);
@@ -234,15 +230,12 @@ const starField = new THREE.Points(starGeo, new THREE.PointsMaterial({
 }));
 scene.add(starField);
 
-// -- technique animations
 let techTime = 0;
 
-// helper: fill phase arrays with random values
 function initPhases() {
     for (let i = 0; i < COUNT; i++) { phases[i] = Math.random(); phases2[i] = Math.random(); }
 }
 
-// Infinite Void — concentric rings + info streams + cosmic bg
 const voidBg = new Float32Array(COUNT * 3);
 const streamDirs = [];
 for (let s = 0; s < 12; s++) {
@@ -273,7 +266,6 @@ function animateVoid(t) {
         let x, y, z, r, g, b, s;
 
         if (pct < 0.09) {
-            // concentric luminous rings around a center void (no CSS eye)
             const lane = i % 6;
             const laneCount = Math.max(1, Math.floor((COUNT * 0.09) / 6));
             const u = Math.floor(i / 6) / laneCount;
@@ -288,7 +280,6 @@ function animateVoid(t) {
             b = 2.05 + lane * 0.08;
             s = 2.1 - lane * 0.15;
         } else if (pct < 0.22) {
-            // halo haze, evenly distributed
             const lane = i % 10;
             const laneCount = Math.max(1, Math.floor((COUNT * 0.13) / 10));
             const u = Math.floor((i - Math.floor(COUNT * 0.09)) / 10) / laneCount;
@@ -302,7 +293,6 @@ function animateVoid(t) {
             b = 1.7;
             s = 1.15;
         } else if (pct < 0.40) {
-            // radial light rays
             const rayCount = 40;
             const ray = i % rayCount;
             const rayLenCount = Math.max(1, Math.floor((COUNT * 0.18) / rayCount));
@@ -319,7 +309,6 @@ function animateVoid(t) {
             b = 1.7 + bright * 1.0;
             s = 0.95 + bright * 0.75;
         } else if (pct < 0.57) {
-            // white splash bands mirroring the reference composition
             const clusters = 8;
             const splashAngles = [0, Math.PI, Math.PI * 0.5, Math.PI * 1.5, Math.PI * 0.22, Math.PI * 0.78, Math.PI * 1.22, Math.PI * 1.78];
             const cluster = i % clusters;
@@ -338,7 +327,6 @@ function animateVoid(t) {
             b = 2.2;
             s = 0.75 + (1 - u) * 0.95;
         } else if (pct < 0.74) {
-            // infinite information streams
             const streamCount = 24;
             const stream = i % streamCount;
             const segCount = Math.max(1, Math.floor((COUNT * 0.17) / streamCount));
@@ -354,7 +342,6 @@ function animateVoid(t) {
             b = 1.55;
             s = 0.5 + (1 - flow) * 0.42;
         } else {
-            // deep cosmic shell
             const bx = voidBg[i*3], by = voidBg[i*3+1], bz = voidBg[i*3+2];
             x = bx + Math.sin(t * 0.2 + p * 6) * 2.1;
             y = by + Math.cos(t * 0.17 + p2 * 7) * 2.3;
@@ -415,14 +402,12 @@ function animateNeutral(t) {
     }
 }
 
-// Red — volumetric repulsion sphere with spiral shells and axial tendrils.
 function animateRed(t) {
     for (let i = 0; i < COUNT; i++) {
         const p = phases[i], p2 = phases2[i], pct = i / COUNT;
         let x, y, z, r, g, b, s;
 
         if (pct < 0.09) {
-            // dense hot nucleus
             const th = p * TAU + t * 2.2;
             const ph = Math.acos(2 * p2 - 1);
             const rad = p * p * (1.75 + Math.sin(t * 3.8) * 0.22);
@@ -431,7 +416,6 @@ function animateRed(t) {
             z = rad * Math.cos(ph) * 0.9;
             r = 2.2; g = 1.88; b = 1.74; s = 2.12;
         } else if (pct < 0.34) {
-            // nested latitudinal spiral shells
             const band = i % 9;
             const u = (pct - 0.09) / 0.25;
             const lat = ((band - 4) / 4) * 0.92;
@@ -447,7 +431,6 @@ function animateRed(t) {
             b = 0.01 + heat * 0.04;
             s = 1.05 + heat * 0.78;
         } else if (pct < 0.72) {
-            // outward tendrils wrapped around 3D axes
             const lane = i % streamBasis.length;
             const basis = streamBasis[lane];
             const flow = (p + t * (0.34 + lane * 0.01)) % 1;
@@ -466,7 +449,6 @@ function animateRed(t) {
             b = spark * 0.035;
             s = 0.72 + spark * 0.66;
         } else if (pct < 0.93) {
-            // deep volumetric aftermath cloud
             const th = p * TAU + t * 0.24;
             const ph = Math.acos(2 * p2 - 1);
             const rad = 22 + Math.pow(p, 0.72) * 82;
@@ -478,7 +460,6 @@ function animateRed(t) {
             b = 0.0;
             s = 0.46;
         } else {
-            // drifting ember dust
             const fall = (p + t * (0.1 + p2 * 0.08)) % 1;
             const a = p2 * TAU;
             const rad = 26 + p * 86;
@@ -496,14 +477,12 @@ function animateRed(t) {
     }
 }
 
-// Blue — volumetric singularity with collapsing shells and inflow streams.
 function animateBlue(t) {
     for (let i = 0; i < COUNT; i++) {
         const p = phases[i], p2 = phases2[i], pct = i / COUNT;
         let x, y, z, r, g, b, s;
 
         if (pct < 0.1) {
-            // dense singularity core
             const th = p * TAU - t * 3.0;
             const ph = Math.acos(2 * p2 - 1);
             const rad = p * p * (1.65 + Math.sin(t * 4.1) * 0.22);
@@ -512,7 +491,6 @@ function animateBlue(t) {
             z = rad * Math.cos(ph) * 0.92;
             r = 0.24; g = 0.66; b = 1.9; s = 2.0;
         } else if (pct < 0.36) {
-            // 3D shells collapsing into the core
             const band = i % 8;
             const u = (pct - 0.1) / 0.26;
             const lat = ((band - 3.5) / 3.5) * 0.88;
@@ -528,7 +506,6 @@ function animateBlue(t) {
             b = 0.82 + cool * 0.8;
             s = 0.98 + cool * 0.8;
         } else if (pct < 0.74) {
-            // inward 3D streams spiraling into singularity
             const lane = i % streamBasis.length;
             const basis = streamBasis[lane];
             const flow = (p + t * (0.22 + lane * 0.012)) % 1;
@@ -547,7 +524,6 @@ function animateBlue(t) {
             b = 0.58 + energy * 1.02;
             s = 0.66 + energy * 0.82;
         } else if (pct < 0.92) {
-            // deep lensing volume shell
             const th = p * TAU - t * 0.2;
             const ph = Math.acos(2 * p2 - 1);
             const rad = 20 + Math.pow(p, 0.7) * 92;
@@ -559,7 +535,6 @@ function animateBlue(t) {
             b = 0.34 + p * 0.42;
             s = 0.47;
         } else {
-            // cooled particulate drift
             const d = getDissolveParticle(i, t);
             x = d.x; y = d.y; z = d.z;
             r = d.r * 0.3;
@@ -573,7 +548,6 @@ function animateBlue(t) {
     }
 }
 
-// Purple — red crashes in from right, blue from left, violent fusion at center.
 function animatePurple(t) {
     const aggro = 1 + Math.sin(t*4)*0.3;
     for (let i = 0; i < COUNT; i++) {
@@ -581,13 +555,11 @@ function animatePurple(t) {
         let x, y, z, r, g, b, s;
 
         if (pct < 0.10) {
-            // violent purple core
             const th = p*6.28+t*2.5, ph = Math.acos(2*p2-1), rad = p*(5+Math.sin(t*4)*1.5);
             x = rad*Math.sin(ph)*Math.cos(th); y = rad*Math.sin(ph)*Math.sin(th); z = rad*Math.cos(ph);
             r = 1.0*aggro; g = 0.05; b = 1.5*aggro;
             s = 2.0 + Math.sin(t*6+p*10)*0.5;
         } else if (pct < 0.35) {
-            // blue vortex from the LEFT
             const prog = (pct - 0.10) / 0.25;
             const dist = (1-prog)*38 + 3;
             const angle = p*6.28 + prog*18 + t*2.2;
@@ -598,7 +570,6 @@ function animatePurple(t) {
             x += Math.sin(t*3+p*9)*1.5*prog;
             r = 0.02+prog*0.15; g = 0.05; b = 0.6+prog*0.6; s = 1.2;
         } else if (pct < 0.60) {
-            // red vortex from the RIGHT
             const prog = (pct - 0.35) / 0.25;
             const dist = (1-prog)*38 + 3;
             const angle = p*6.28 - prog*18 - t*2.2;
@@ -609,19 +580,16 @@ function animatePurple(t) {
             x += Math.sin(t*3+p*9)*1.5*prog;
             r = 0.7+prog*0.4; g = 0.0; b = 0.03+prog*0.1; s = 1.2;
         } else if (pct < 0.72) {
-            // blue atmosphere left
             const th = p*6.28+t*0.3, ph = Math.acos(2*p2-1), rad = 8+p*22;
             x = -rad*0.6+Math.sin(ph)*Math.cos(th)*rad*0.35;
             y = Math.sin(ph)*Math.sin(th)*rad*0.5; z = Math.cos(ph)*rad*0.3;
             r = 0.01; g = 0.03; b = 0.4; s = 0.6;
         } else if (pct < 0.84) {
-            // red atmosphere right
             const th = p*6.28+t*0.3, ph = Math.acos(2*p2-1), rad = 8+p*22;
             x = rad*0.6+Math.sin(ph)*Math.cos(th)*rad*0.35;
             y = Math.sin(ph)*Math.sin(th)*rad*0.5; z = Math.cos(ph)*rad*0.3;
             r = 0.45; g = 0.0; b = 0.02; s = 0.6;
         } else {
-            // collision debris
             const th = p*6.28, ph = Math.acos(2*p2-1);
             const burst = ((t*0.5+p)%1)*40;
             x = burst*Math.sin(ph)*Math.cos(th); y = burst*Math.sin(ph)*Math.sin(th); z = burst*Math.cos(ph);
@@ -634,14 +602,12 @@ function animatePurple(t) {
     }
 }
 
-// Malevolent Shrine — the actual shrine. ground, pillars, curved roof, slashes, atmosphere.
 function animateShrine(t) {
     for (let i = 0; i < COUNT; i++) {
         const p = phases[i], p2 = phases2[i], pct = i / COUNT;
         let x, y, z, r, g, b, s;
 
         if (pct < 0.18) {
-            // cursed floor
             const floorA = p * 6.28;
             const floorR = Math.sqrt(p2) * 47;
             x = Math.cos(floorA) * floorR;
@@ -649,20 +615,17 @@ function animateShrine(t) {
             y = -19 + Math.sin((p + p2) * 10 + t * 0.6) * 0.8;
             r = 0.48; g = 0.01; b = 0.0; s = 1.0;
         } else if (pct < 0.28) {
-            // front shrine pillars
             const side = i % 2 === 0 ? -1 : 1;
             x = side * 15 + (p - 0.5) * 2.2;
             y = -19 + p2 * 37;
             z = (p2 - 0.5) * 2.4;
             r = 0.20; g = 0.02; b = 0.02; s = 1.2;
         } else if (pct < 0.36) {
-            // crossbeam
             x = (p - 0.5) * 38;
             y = 16 + (p2 - 0.5) * 2.5;
             z = (p2 - 0.5) * 6;
             r = 0.62; g = 0.03; b = 0.01; s = 1.1;
         } else if (pct < 0.48) {
-            // roof horns / silhouette
             const side = i % 2 === 0 ? -1 : 1;
             const prog = p2;
             x = side * (8 + prog * 20);
@@ -670,7 +633,6 @@ function animateShrine(t) {
             z = (p - 0.5) * 8;
             r = 0.72; g = 0.05; b = 0.02; s = 0.9;
         } else if (pct < 0.62) {
-            // rotating ritual ring beneath the gate
             const ring = i % 3;
             const ringR = 8 + ring * 4 + Math.sin(t * 0.9 + p * 8) * 0.4;
             const angle = p * 6.28 + t * (0.9 + ring * 0.35);
@@ -679,7 +641,6 @@ function animateShrine(t) {
             z = Math.sin(angle) * ringR;
             r = 0.95; g = 0.22; b = 0.05; s = 0.75;
         } else if (pct < 0.82) {
-            // cleave and dismantle streaks
             const slashIdx = i % 10;
             const seed = slashIdx * 1.31;
             const slashAngle = seed * 2.7 + t * 0.5 * (slashIdx % 2 === 0 ? 1 : -1);
@@ -692,7 +653,6 @@ function animateShrine(t) {
             r = 0.85 + edge * 2.2; g = edge * 0.5; b = edge * 0.15;
             s = 0.5 + edge * 2.8;
         } else if (pct < 0.93) {
-            // blood rain
             const fall = (t * (0.35 + p * 0.4) + p2 * 1.6) % 1;
             const rainA = p * 6.28;
             const rainR = Math.sqrt(p2) * 38;
@@ -701,7 +661,6 @@ function animateShrine(t) {
             z = Math.sin(rainA) * rainR;
             r = 0.62; g = 0.0; b = 0.0; s = 0.28;
         } else {
-            // floating ash
             const rad = 18 + p * 55;
             const a = p2 * 6.28 + t * 0.12;
             x = rad * Math.cos(a);
@@ -809,11 +768,9 @@ function applyReleaseOverlay(dt) {
     }
 }
 
-// -- DOM + state
 const shrineOverlay = document.getElementById('shrine-overlay');
 const sukunaGuide   = document.getElementById('sukuna-guide');
 
-// -- audio
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 const masterGain = audioCtx.createGain();
 masterGain.connect(audioCtx.destination);
@@ -856,7 +813,6 @@ let shakeDecay  = 0;
 let shakeTime   = 0;
 let glowColor   = '#00ffff';
 
-// debounce
 let candidateTech = 'neutral';
 let candidateCount = 0;
 let neutralFrames  = 0;
@@ -897,7 +853,6 @@ const releaseFx = {
     burst: 0,
 };
 
-// -- hand tracking
 const video  = document.querySelector('.input_video');
 const canvas = document.getElementById('output_canvas');
 const ctx    = canvas.getContext('2d');
@@ -1128,7 +1083,6 @@ hands.onResults(results => {
             }
 
         } else {
-            // single hand
             sukunaGuide.classList.remove('two-hands', 'matched');
             const lm = results.multiHandLandmarks[0];
             const gesture = getHandGesture(lm);
@@ -1188,7 +1142,6 @@ hands.onResults(results => {
         voidStickyFrames = Math.max(0, voidStickyFrames - 1);
     }
 
-    // debounce
     if (detected !== 'neutral') {
         neutralFrames = 0;
         if (detected === candidateTech) {
@@ -1227,7 +1180,6 @@ function updateState(tech) {
     shakeDecay = tech !== 'neutral' ? 1.0 : 0;
     shakeTime = 0;
 
-    // overlays
     shrineOverlay.classList.toggle('active', tech === 'shrine');
     if (tech === 'void') {
         document.body.style.background = `
@@ -1256,7 +1208,6 @@ function updateState(tech) {
         }
     }
 
-    // init void bg positions
     if (tech === 'void') {
         const bgStart = Math.floor(COUNT * 0.74);
         const bgCount = COUNT - bgStart;
@@ -1273,7 +1224,6 @@ function updateState(tech) {
         }
     }
 
-    // for animated techniques, seed initial targets
     if (tech === 'void') animateVoid(0);
     else if (tech === 'red') animateRed(0);
     else if (tech === 'blue') animateBlue(0);
@@ -1290,7 +1240,6 @@ const cam = new Camera(video, {
 });
 cam.start();
 
-// -- animation loop
 function animate() {
     requestAnimationFrame(animate);
 
