@@ -1,0 +1,19 @@
+// shared mutable state — imported by all modules that need it
+export const state = {
+    currentTech: 'neutral',
+    techTime: 0,
+    lerpRate: 0.1,
+    shakeDecay: 0,
+    shakeTime: 0,
+    glowColor: 'rgba(120, 200, 180, 1)',
+    perfMode: false,
+    handDrawTick: 0,
+    animFrameTick: 0,
+    simAccumDt: 0,
+    tuneHudEnabled: false,
+    trackTargetX: 0,
+    trackOffsetX: 0,
+    trackSeenFrames: 0,
+    perfBadge: null,
+    tuneHud: null,
+};

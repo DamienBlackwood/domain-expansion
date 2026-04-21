@@ -1,38 +1,42 @@
-# Domain Expansion
+# domain expansion
 
-Real-time JJK cursed technique visualizer
+real-time jjk cursed technique visualizer
 
-Inspired by [SAT0RU](https://github.com/reinesana/SAT0RU) by reinesana.
+idea inspired by [SAT0RU](https://github.com/reinesana/SAT0RU) by reinesana.
 
 ---
 
-## Gestures
+## gestures
 
-Current mapping in code (not ideal, but accurate to the current implementation):
+current mapping in code (not ideal, its just how it works right now):
 
-| Gesture | Technique |
+| gesture | technique |
 |---|---|
-| Pinch (thumb + index) | Secret Technique: Hollow Purple |
-| Closed fist | Cursed Technique: Blue |
-| Thumb + index + middle up, ring + pinky down, index/middle close together (Finger Gun) | Reverse Cursed Technique: Red |
-| Index up + middle curled over index, ring + pinky down (Gojo's Hand Sign) | Domain Expansion: Infinite Void |
-| Two hands: Sukuna mudra (strict) | Domain Expansion: Malevolent Shrine |
-| Two hands in frame (not mudra) | No cast (reserved for mudra detection only) |
-| Open hand + quick flick (after charging red/blue/purple) | Release Cast |
+| pinch (thumb + index) | secret technique: hollow purple |
+| closed fist | cursed technique: blue |
+| thumb + index + middle up, ring + pinky down, index/middle close together (finger gun) | reverse cursed technique: red |
+| index up + middle curled over index, ring + pinky down (gojo's hand sign) | domain expansion: infinite void |
+| two hands: sukuna mudra (strict) | domain expansion: malevolent shrine |
+| two hands in frame (not mudra) | no cast (reserved for mudra detection only) |
+| open hand + quick flick (after charging red/blue/purple) | release cast |
 
-## Known Issues
+## known issues
 
-- Gesture detection is still unstable and sensitive to camera angle/distance.
-- Red and Infinite Void can still conflict in edge cases because both rely on index/middle geometry.
-- Shrine is mudra-only in two-hand mode; prayer and two-hand technique combos are intentionally disabled.
-- This README reflects the current behavior in `index.html`, even where behavior is broken. (Things will improve!)
+- gesture detection is still a bit unstable and sensitive to camera angle/distance
+- red and infinite void can conflict in edge cases since both depend on index/middle geometry
+- shrine is mudra-only in two-hand mode; prayer and two-hand combos are intentionally disabled
+- this readme matches the current behavior in `index.html`, even where things are broken (will improve)
+- and a lot more... *that I will get to*
 
-## Run
+## trying it out yourself
 
-Install the **Live Server** extension in VS Code, right-click `index.html`, and select **Open with Live Server**.
+there's two ways, you can run a live server inside of VS-CODE, or you can just do:
 
-Requires a webcam and a modern browser (Chrome recommended).
+```bash
+python -m http.server 8080 # or any port
+```
 
-## Stack
 
-Three.js · MediaPipe Hands · WebGL GLSL shaders · UnrealBloom post-processing
+## requirements
+
+it obviously requires a webcam and a modern browser (chrome recommended)
