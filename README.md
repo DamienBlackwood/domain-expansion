@@ -36,6 +36,14 @@ there's two ways, you can run a live server inside of VS-CODE, or you can just d
 python -m http.server 8080 # or any port
 ```
 
+## audio assets
+
+this repo does not come with sound effects.
+
+if you want audio, add your own files to `./sfx/` using the same filenames the app expects:
+
+- `gojos-domain.opus`
+- `sukunas-domain.opus`
 
 ## requirements
 

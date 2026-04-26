@@ -111,11 +111,14 @@ export function stopAudio(name, opts = {}) {
     b.source = null; b.gain = null;
 }
 
+function sfxUrl(file) {
+    return new URL(`../../sfx/${file}`, import.meta.url).href;
+}
+
 // load sound files
 loadAudioFirst('void', [
-    './sfx/gojos-domain.opus',
-    './References/sfx/' + encodeURIComponent('Gojo Domain Expansion sound effect [MQQi5EaMzbs].opus'),
+    sfxUrl('gojos-domain.opus'),
 ]);
 loadAudioFirst('shrine', [
-    './sfx/sukunas-domain.opus',
+    sfxUrl('sukunas-domain.opus'),
 ]);

@@ -143,10 +143,16 @@ video { width: 100%; height: 100%; object-fit: cover; opacity: 0.65; }
     opacity: 0.15; transition: opacity 0.5s ease;
     text-align: center; pointer-events: none;
 }
-#sukuna-guide img {
-    width: 64px; display: block; border-radius: 8px;
+#sukuna-guide .sukuna-mark {
+    width: 64px; height: 64px; display: block; border-radius: 8px;
     border: 1px solid rgba(255, 30, 0, 0.2);
-    transition: border-color 0.4s, box-shadow 0.4s;
+    transition: border-color 0.4s, box-shadow 0.4s, transform 0.4s;
+    background:
+        radial-gradient(circle at 50% 38%, rgba(255, 80, 40, 0.95) 0 2px, transparent 3px),
+        linear-gradient(135deg, transparent 43%, rgba(255, 56, 25, 0.85) 43% 57%, transparent 57%),
+        linear-gradient(225deg, transparent 43%, rgba(255, 56, 25, 0.85) 43% 57%, transparent 57%),
+        radial-gradient(circle at 50% 50%, rgba(255, 40, 15, 0.18) 0 38%, transparent 39%);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02);
 }
 .guide-label {
     font-family: 'Inter', sans-serif;
@@ -154,8 +160,8 @@ video { width: 100%; height: 100%; object-fit: cover; opacity: 0.65; }
     margin-top: 6px; text-transform: uppercase;
 }
 #sukuna-guide.two-hands { opacity: 0.65; }
-#sukuna-guide.two-hands img { border-color: rgba(255, 50, 0, 0.75); box-shadow: 0 0 14px rgba(255, 30, 0, 0.5); }
-#sukuna-guide.matched img { box-shadow: 0 0 30px rgba(255, 40, 0, 0.95); }
+#sukuna-guide.two-hands .sukuna-mark { border-color: rgba(255, 50, 0, 0.75); box-shadow: 0 0 14px rgba(255, 30, 0, 0.5); transform: translateY(-1px); }
+#sukuna-guide.matched .sukuna-mark { box-shadow: 0 0 30px rgba(255, 40, 0, 0.95); }
 
 /* Hints panel — glassmorphism */
 #hints {
