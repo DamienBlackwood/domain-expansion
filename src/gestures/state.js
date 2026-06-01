@@ -1,7 +1,6 @@
 import { clamp01 } from '../utils.js';
 import { updateState } from '../ui/theme.js';
 
-// shrine is NOT in gestureKeys — it bypasses confidence and triggers directly
 export const gestureKeys = ['red', 'blue', 'purple', 'void'];
 export const gestureConfig = {
     red:    { enter: 0.68, hold: 0.36, rise: 0.26, fall: 0.14, cooldown: 260 },
@@ -19,7 +18,6 @@ export function setDevOverride(v) { devOverride = v; }
 
 export function stepGestureState(rawGesture, nowMs) {
     if (devOverride) return;
-    // shrine + chimera bypass confidence entirely — direct trigger/hold from hands.js
     if (rawGesture === 'shrine' || rawGesture === 'chimera') {
         if (activeGesture !== rawGesture) {
             for (const key of gestureKeys) gestureConfidence[key] = 0;
@@ -29,14 +27,12 @@ export function stepGestureState(rawGesture, nowMs) {
         return;
     }
 
-    // drop back to neutral if a domain was active but is no longer detected
     if ((activeGesture === 'shrine' || activeGesture === 'chimera') && rawGesture !== activeGesture) {
         activeGesture = 'neutral';
         updateState(activeGesture);
         return;
     }
 
-    // normal confidence ramp for single-hand gestures
     for (const key of gestureKeys) {
         const cfg = gestureConfig[key];
         const current = gestureConfidence[key];

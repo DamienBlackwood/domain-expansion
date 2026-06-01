@@ -1,4 +1,3 @@
-// shared mutable state — imported by all modules that need it
 export const state = {
     currentTech: 'neutral',
     techTime: 0,

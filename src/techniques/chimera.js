@@ -23,7 +23,6 @@ export function animateChimera(t) {
         const sz = (p - 0.5) * 10;
 
         if (pct < 0.40) {
-            // fluid shadow floor — heavy rolling liquid darkness
             const a   = p * TAU * 3.0 + t * 0.1;
             const rad = 2 + Math.pow(p2, 0.7) * 85;
 
@@ -34,7 +33,6 @@ export function animateChimera(t) {
             z = Math.sin(a) * rad * 0.65;
             y = baseY + wave + swell + p2 * 1.5;
 
-            // jet black with stark cyan rim highlights
             const highlight = Math.max(0, Math.sin(t * 1.5 + rad * 0.2 + p * 10) - 0.8) * 3.0;
             r = 0.01 + highlight * 0.05;
             g = 0.02 + highlight * 0.8;
@@ -43,7 +41,6 @@ export function animateChimera(t) {
             reveal = eShadowFloor;
 
         } else if (pct < 0.75) {
-            // vertebrae / spinal columns rising from the shadow
             const side   = p < 0.5 ? -1 : 1;
             const spineU = (p * 2) % 1;
             const boneIdx = Math.floor(spineU * 12);
@@ -61,7 +58,6 @@ export function animateChimera(t) {
             reveal = eSpines;
 
         } else {
-            // shadow geysers — shikigami eruption points
             const node  = Math.floor(p * 5);
             const nodeX = Math.cos(node * 1.2) * 30;
             const nodeZ = Math.sin(node * 1.2) * 20;

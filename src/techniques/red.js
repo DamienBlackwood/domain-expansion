@@ -2,7 +2,6 @@ import { COUNT } from '../utils.js';
 import { targetPositions, targetColors, targetSizes, phases } from '../engine/particles.js';
 import { radialField, coreCloud } from './field.js';
 
-// Red — matter erupts outward from a white-hot core. Jagged where Blue is smooth.
 const _f = { x: 0, y: 0, z: 0, energy: 0 };
 const _c = { x: 0, y: 0, z: 0, depth: 0 };
 
@@ -16,7 +15,6 @@ export function animateRed(t) {
         let x, y, z, r, g, b, s;
 
         if (pct < 0.26) {
-            // white-hot red core — volumetric cloud (round bloom, no square)
             coreCloud(i, t * 1.1, 7 * pulse, _c);
             x = _c.x; y = _c.y; z = _c.z;
             const core = 1 - _c.depth;
@@ -25,17 +23,15 @@ export function animateRed(t) {
             b = 0.12 + core * 0.35;
             s = 0.7 + core * 2.0;
         } else if (pct < 0.84) {
-            // the eruption — jagged streaks blasting outward along 3D rays
             radialField(i, t, { direction: 1, reach: 50 * pulse, speed: 0.2, swirl: 0.15, jagged: 1.0, accel: 1.4 }, _f);
             x = _f.x; y = _f.y; z = _f.z;
-            const e = _f.energy;          // brightest fresh out of the core
+            const e = _f.energy;
             const flare = 0.6 + 0.4 * Math.sin(p * 71.0 + t * 6.0);
             r = (0.7 + e * 1.1) * flare;
             g = e * e * 0.12 * flare;
             b = e * e * 0.04 * flare;
             s = 0.16 + e * 1.2 * flare;
         } else {
-            // dim red atmosphere hanging in the background
             radialField(i, t * 0.3, { direction: 1, reach: 74, speed: 0.03, accel: 0.8 }, _f);
             x = _f.x; y = _f.y; z = _f.z;
             r = 0.14 + p * 0.1; g = 0.0; b = 0.0;

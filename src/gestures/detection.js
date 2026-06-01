@@ -1,7 +1,4 @@
-// palm-local coordinate frame → orientation/scale-free gesture scores.
-// raw screen-y checks + wrist ratios used to flicker badly when you tilted your hand.
 
-// landmark indices
 const WRIST = 0;
 const THUMB_TIP = 4, THUMB_IP = 3, THUMB_MCP = 2;
 const FINGER = {
@@ -22,7 +19,6 @@ export function landmarkDist3(a, ai, b, bi) {
     return Math.hypot(dx, dy, dz);
 }
 
-// vec3 helpers — plain objects, no allocs in hot path
 function sub(a, b) { return { x: a.x - b.x, y: a.y - b.y, z: (a.z || 0) - (b.z || 0) }; }
 function cross(a, b) {
     return {
@@ -41,7 +37,6 @@ function smoothstep(edge0, edge1, x) {
     return t * t * (3 - 2 * t);
 }
 
-// palm-local frame — y toward fingers, x across palm, z normal
 export function normalizeHand(lm) {
     const wrist = lm[WRIST];
     const idxMcp = lm[FINGER.index.mcp];
@@ -52,7 +47,6 @@ export function normalizeHand(lm) {
     const acrossRaw = sub(pinkyMcp, idxMcp);
     let normal = norm(cross(up, acrossRaw));
     const side = norm(cross(normal, up));
-    // re-orthogonalise normal so the frame is clean
     normal = cross(side, up);
 
     const scale = (landmarkDist3(lm, FINGER.index.mcp, lm, FINGER.pinky.mcp)
@@ -70,12 +64,10 @@ export function normalizeHand(lm) {
     return { local, scale, up, side, normal };
 }
 
-// tip y past mcp y — 0 = curled, 1+ = extended
 function fingerExtension(local, f) {
     return local[f.tip].y - local[f.mcp].y;
 }
 
-// 0..1 — tip/pip/mcp collinear along up axis (1 = dead straight)
 function fingerStraight(local, f) {
     const tip = local[f.tip], pip = local[f.pip], mcp = local[f.mcp];
     const reach = tip.y - mcp.y;
@@ -103,7 +95,6 @@ export function handFeatures(lm) {
         pinky:  fingerStraight(local, FINGER.pinky),
     };
 
-    // per-finger "up" confidence — extended AND straight
     const up = {
         index:  smoothstep(0.55, 0.95, ext.index)  * (0.4 + 0.6 * straight.index),
         middle: smoothstep(0.55, 0.95, ext.middle) * (0.4 + 0.6 * straight.middle),
@@ -117,20 +108,17 @@ export function handFeatures(lm) {
         pinky:  1 - smoothstep(0.35, 0.7, ext.pinky),
     };
 
-    // thumb: distance tip->index-mcp side, and tuck across palm
     const thumbTip = local[THUMB_TIP];
     const thumbReach = Math.hypot(thumbTip.x, thumbTip.y);
     const thumbOut = smoothstep(0.55, 0.95, thumbReach);
     const thumbTuck = 1 - thumbOut;
 
-    // pinch — thumb tip to index tip, in palm units
     const pinchGap = Math.hypot(
         thumbTip.x - local[FINGER.index.tip].x,
         thumbTip.y - local[FINGER.index.tip].y,
         thumbTip.z - local[FINGER.index.tip].z,
     );
 
-    // index/middle proximity — for the void crossed-finger pose
     const idxMidGap = Math.hypot(
         local[FINGER.index.tip].x - local[FINGER.middle.tip].x,
         local[FINGER.index.tip].y - local[FINGER.middle.tip].y,
@@ -151,19 +139,16 @@ function scorePinch(f) {
     return close * (0.4 + 0.6 * notFist);
 }
 
-// finger gun: index up, thumb out, ring+pinky curled
 function scoreRed(f) {
     const indexUp = f.up.index;
     const ringPinkyDown = (f.curl.ring + f.curl.pinky) / 2;
     const thumb = f.thumbOut;
-    // middle may be up or tucked alongside index, don't penalise either way
     return indexUp * ringPinkyDown * (0.45 + 0.55 * thumb);
 }
 
-// Gojo's sign: index up, middle hugging index, ring+pinky down
 function scoreVoid(f) {
     const indexUp = f.up.index;
-    const middleNotFree = 1 - smoothstep(0.35, 0.7, f.idxMidGap); // middle hugs index
+    const middleNotFree = 1 - smoothstep(0.35, 0.7, f.idxMidGap);
     const ringPinkyDown = (f.curl.ring + f.curl.pinky) / 2;
     return indexUp * middleNotFree * ringPinkyDown;
 }
@@ -186,8 +171,6 @@ export function getHandGesture(lm) {
 
     let best = 'open';
     let bestScore = scores.open;
-    // void and red share index-up geometry; bias toward whichever scores higher,
-    // but require a clear margin so they don't trade blows frame to frame
     for (const k of ['void', 'red', 'purple', 'blue']) {
         if (scores[k] > bestScore && scores[k] >= GESTURE_FLOOR) {
             best = k;
@@ -202,8 +185,6 @@ function pairScale(handA, handB) {
     return ((landmarkDist3(handA, 0, handA, 9) + landmarkDist3(handB, 0, handB, 9)) * 0.5) + 1e-6;
 }
 
-// Sukuna: clasped hands, middle+ring up and touching, index+pinky folded.
-// MediaPipe blends interlaced hands so we score fuzzily.
 export function evaluateSukunaMudra(left, right) {
     const scale = pairScale(left, right);
     const lf = handFeatures(left);
@@ -236,8 +217,6 @@ export function evaluateSukunaMudra(left, right) {
     return mudraResult(true, score, { strongMudraShape, handsJoinedForCast, wristGap, middleGap, ringGap, wristYGap, wristAligned, tipsTouching, totalFolded: 4 });
 }
 
-// Chimera: clasped hands, both index tips meeting, everything else folded.
-// Rejects if it looks like shrine (middle+ring up on either hand).
 export function evaluateChimeraMudra(left, right) {
     const scale = pairScale(left, right);
     const lf = handFeatures(left);
@@ -249,7 +228,6 @@ export function evaluateChimeraMudra(left, right) {
     const pinkyDown = (lf.curl.pinky + rf.curl.pinky) * 0.5;
     const thumbTuck = (lf.thumbTuck + rf.thumbTuck) * 0.5;
 
-    // shrine shape = middle+ring extended on either hand → reject
     const shrineShape = (lf.up.middle > 0.5 || rf.up.middle > 0.5) && (lf.up.ring > 0.5 || rf.up.ring > 0.5);
     if (shrineShape) {
         return { matched: false, handsJoinedForCast: false, distinctHands: true, wristGap: 999 };
@@ -275,7 +253,6 @@ export function evaluateChimeraMudra(left, right) {
     };
 }
 
-// wide result shape that hands.js + tune HUD both expect
 function mudraResult(matched, score, m) {
     return {
         matched, score, targetScore: 3,

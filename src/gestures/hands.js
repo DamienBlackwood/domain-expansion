@@ -218,11 +218,10 @@ export function setupHands(video, canvas) {
 
                     if (mudra.matched) {
                         shrineStickyFrames = SHRINE_STICKY;
-                        chimeraStickyFrames = 0; // shrine wins, kill chimera sticky
+                        chimeraStickyFrames = 0;
                         detected = 'shrine';
                         sukunaGuide.classList.add('matched');
                     } else if (shrineStickyFrames > 0) {
-                        // shrine is still sticky — chimera cannot fire during this window
                         detected = 'shrine';
                         sukunaGuide.classList.add('matched');
                     } else if (chimeraMudra.matched) {
@@ -374,7 +373,6 @@ export function setupHands(video, canvas) {
         }
         frameHud.rawDetected = detected;
         if (mudraOnlyMode) {
-            // block all single-hand gestures while in mudra mode
             gestureConfidence.red = 0;
             gestureConfidence.blue = 0;
             gestureConfidence.purple = 0;
@@ -396,7 +394,6 @@ export function setupHands(video, canvas) {
         renderTuneHud(frameHud);
     });
 
-    // inference is the real CPU cost — confidence ramp stays smooth at ~20fps
     const MIN_INFER_MS = 45;
     let lastInfer = 0;
     const cam = new Camera(video, {

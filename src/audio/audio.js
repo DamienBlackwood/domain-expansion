@@ -115,7 +115,6 @@ function sfxUrl(file) {
     return new URL(`../../sfx/${file}`, import.meta.url).href;
 }
 
-// load sound files
 loadAudioFirst('void', [
     sfxUrl('gojos-domain.opus'),
 ]);

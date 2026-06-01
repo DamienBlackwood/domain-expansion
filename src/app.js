@@ -23,13 +23,12 @@ const video = document.querySelector('.input_video');
 const canvas = document.getElementById('output_canvas');
 const hands = setupHands(video, canvas);
 
-// keyboard shortcuts
 const debugEl = document.getElementById('debug');
 window.addEventListener('keydown', e => {
     if (e.key === 'n' || e.key === 'N') {
         debugEl.style.display = debugEl.style.display === 'block' ? 'none' : 'block';
     } else if (e.key === 't' || e.key === 'T') {
-        userForcedPerf = true; // manual toggle wins, stop auto-adjusting
+        userForcedPerf = true; 
         applyPerformanceMode(!state.perfMode, hands);
     } else if (e.key === 'h' || e.key === 'H') {
         state.tuneHudEnabled = !state.tuneHudEnabled;
@@ -52,11 +51,10 @@ window.addEventListener('keydown', e => {
 
 window.addEventListener('resize', handleResize);
 
-// render loop
+
 let lastFrame = performance.now();
 let shakeWasActive = false;
 
-// adaptive perf — smoothed fps with hysteresis, manual 't' overrides
 let fpsAvg = 60;
 let lowStreak = 0;
 let highStreak = 0;
@@ -80,7 +78,6 @@ function animate(now) {
         debugEl.textContent = `fps: ${fpsAvg.toFixed(0)}  perf: ${state.perfMode}  tech: ${state.currentTech}`;
     }
 
-    // screen shake — shrine/void rumble slower, red/purple snap fast
     if (state.shakeDecay > 0.01) {
         const isBuildup = state.currentTech === 'void' || state.currentTech === 'shrine' || state.currentTech === 'chimera';
         state.shakeDecay *= isBuildup ? 0.985 : 0.955;
@@ -131,7 +128,6 @@ function animate(now) {
         lerpParticles(state.lerpRate);
     }
 
-    // lerp bloom — slower for buildup techniques so it ramps with the reveal
     const targetBloom = bloomStrengths[state.currentTech] || 0.5;
     const bloomBuildup = (state.currentTech === 'void' || state.currentTech === 'shrine' || state.currentTech === 'chimera') ? 0.018 : 0.04;
     bloomPass.strength += (targetBloom - bloomPass.strength) * bloomBuildup;

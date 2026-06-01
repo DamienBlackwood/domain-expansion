@@ -48,11 +48,9 @@ export function updateState(tech) {
     nameEl.style.color = theme.color;
     nameEl.style.textShadow = `0 0 12px ${theme.shadow}`;
     state.glowColor = theme.color;
-    // lerp rates per technique — snappier for aggressive techs, softer for ambient
     const lerpRates = { neutral: 0.07, blue: 0.11, red: 0.14, purple: 0.13, void: 0.18, shrine: 0.06, chimera: 0.06 };
     state.lerpRate = lerpRates[tech] || 0.1;
 
-    // shake intensity — purple/red hit hard, void/shrine more subtle
     const shakeAmounts = { neutral: 0, blue: 0.7, red: 1.2, purple: 1.4, void: 0.5, shrine: 0.8, chimera: 0.7 };
     state.shakeDecay = shakeAmounts[tech] || 0;
     state.shakeTime = 0;
@@ -68,13 +66,11 @@ export function updateState(tech) {
     };
     setBackground(clearColors[tech] || 0x0f0f0f);
 
-    // also tint the body for UI chrome (corners, video frame, etc)
     const bodyColors = { red: '#0a0000', blue: '#000814', purple: '#07000f', void: '#00020a', shrine: '#080000', chimera: '#00080a' };
     document.body.style.background = bodyColors[tech] || '#0f0f0f';
 
     shrineOverlay.classList.toggle('active', tech === 'shrine');
     chimeraOverlay.classList.toggle('active', tech === 'chimera');
-    // void + shrine + chimera audio is driven by hands.js (pose-held), not by state transitions
 
     if (tech === 'void') animateVoid(0);
     else if (tech === 'red') animateRed(0);

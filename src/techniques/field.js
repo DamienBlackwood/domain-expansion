@@ -1,10 +1,6 @@
 import { TAU } from '../utils.js';
 import { phases, phases2 } from '../engine/particles.js';
 
-// Shared radial-flow field — Blue and Red are the same machinery with direction flipped.
-// Golden-angle + random-y sphere so particles fill a real sphere with no lanes.
-// direction: -1 = inflow (Blue), +1 = outflow (Red)
-
 const GOLDEN = Math.PI * (3 - Math.sqrt(5));
 
 function rayDir(i, p2, out) {
@@ -30,9 +26,9 @@ export function radialField(i, t, opts, res) {
 
     let dist;
     if (direction < 0) {
-        dist = (1 - eased) * reach + 1.5;        // shrink toward core
+        dist = (1 - eased) * reach + 1.5;
     } else {
-        dist = eased * reach + 1.5;              // grow away from core
+        dist = eased * reach + 1.5;
     }
 
     if (jagged > 0) {
@@ -43,7 +39,6 @@ export function radialField(i, t, opts, res) {
     let y = _dir.y * dist * 0.92;
     let z = _dir.z * dist;
 
-    // swirl tightens near the core for a curved infall path
     if (swirl !== 0) {
         const tighten = 1 - dist / (reach + 1.5);
         const ang = swirl * tighten * tighten * (2.4 + p2 * 1.2) * direction * -1;
@@ -57,11 +52,7 @@ export function radialField(i, t, opts, res) {
     res.x = x; res.y = y; res.z = z; res.energy = energy;
 }
 
-// core cloud — three independent seeds per particle (radius/azimuth/polar).
-// correlating them from phases[] carved a rotating crescent artifact.
-// cube-root radius keeps volume density even.
 function hash01(n) {
-    // integer hash → [0,1)
     n = (n ^ 61) ^ (n >>> 16);
     n = n + (n << 3);
     n = n ^ (n >>> 4);

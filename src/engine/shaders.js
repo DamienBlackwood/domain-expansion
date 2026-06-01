@@ -24,7 +24,6 @@ export const fragmentShader = `
         float glow = exp(-d * d * 2.5);
         float aura = exp(-d * d * 0.6);
 
-        // per-pixel shimmer — subtle flicker based on screen position + time
         float shimmer = 1.0 + sin(vScreenY * 3.7 + uTime * 2.4) * 0.035;
 
         float alpha = (core * 0.9 + glow * 0.4 + aura * 0.12) * shimmer;
