@@ -1,5 +1,5 @@
-import { COUNT, TAU } from '../utils.js';
-import { initPhases, phases, voidBg, snapToTarget } from '../engine/particles.js';
+import { COUNT } from '../utils.js';
+import { initPhases, snapToTarget } from '../engine/particles.js';
 import { setBackground } from '../engine/scene.js';
 import { releaseFx } from '../techniques/release.js';
 import { animateNeutral } from '../techniques/neutral.js';
@@ -49,7 +49,7 @@ export function updateState(tech) {
     nameEl.style.textShadow = `0 0 12px ${theme.shadow}`;
     state.glowColor = theme.color;
     // lerp rates per technique — snappier for aggressive techs, softer for ambient
-    const lerpRates = { neutral: 0.07, blue: 0.11, red: 0.14, purple: 0.13, void: 0.08, shrine: 0.06, chimera: 0.06 };
+    const lerpRates = { neutral: 0.07, blue: 0.11, red: 0.14, purple: 0.13, void: 0.18, shrine: 0.06, chimera: 0.06 };
     state.lerpRate = lerpRates[tech] || 0.1;
 
     // shake intensity — purple/red hit hard, void/shrine more subtle
@@ -57,7 +57,6 @@ export function updateState(tech) {
     state.shakeDecay = shakeAmounts[tech] || 0;
     state.shakeTime = 0;
 
-    // per-tech clear colors for the WebGL canvas (flat, no gradient)
     const clearColors = {
         neutral: 0x0f0f0f,
         red:     0x0a0000,
@@ -76,22 +75,6 @@ export function updateState(tech) {
     shrineOverlay.classList.toggle('active', tech === 'shrine');
     chimeraOverlay.classList.toggle('active', tech === 'chimera');
     // void + shrine + chimera audio is driven by hands.js (pose-held), not by state transitions
-
-    if (tech === 'void') {
-        const bgStart = Math.floor(COUNT * 0.74);
-        const bgCount = COUNT - bgStart;
-        const golden = Math.PI * (3 - Math.sqrt(5));
-        for (let i = bgStart; i < COUNT; i++) {
-            const idx = i - bgStart;
-            const yNorm = 1 - ((idx + 0.5) / bgCount) * 2;
-            const radial = Math.sqrt(Math.max(0, 1 - yNorm * yNorm));
-            const th = idx * golden;
-            const rad = 64 + phases[i] * 96;
-            voidBg[i * 3]     = Math.cos(th) * radial * rad;
-            voidBg[i * 3 + 1] = yNorm * rad;
-            voidBg[i * 3 + 2] = Math.sin(th) * radial * rad;
-        }
-    }
 
     if (tech === 'void') animateVoid(0);
     else if (tech === 'red') animateRed(0);

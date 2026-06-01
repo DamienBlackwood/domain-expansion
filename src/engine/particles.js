@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { COUNT, TAU } from '../utils.js';
+import { COUNT } from '../utils.js';
 import { vertexShader, fragmentShader } from './shaders.js';
 import { scene } from './scene.js';
 
@@ -36,33 +36,6 @@ particles.frustumCulled = false;
 scene.add(particles);
 
 export { geo };
-
-// void background shell positions
-export const voidBg = new Float32Array(COUNT * 3);
-
-// stream basis vectors shared by void, blue, purple
-const streamDirs = [];
-for (let s = 0; s < 12; s++) {
-    const ang = (s / 12) * TAU;
-    const elev = ((s % 3) - 1) * 0.34;
-    const base = Math.cos(elev);
-    streamDirs.push({
-        x: Math.cos(ang) * base,
-        y: Math.sin(elev),
-        z: Math.sin(ang) * base,
-    });
-}
-export const streamBasis = streamDirs.map(v => {
-    const dir = new THREE.Vector3(v.x, v.y, v.z).normalize();
-    const ref = Math.abs(dir.y) > 0.9 ? new THREE.Vector3(1, 0, 0) : new THREE.Vector3(0, 1, 0);
-    const right = new THREE.Vector3().crossVectors(ref, dir).normalize();
-    const up = new THREE.Vector3().crossVectors(dir, right).normalize();
-    return {
-        dir:   { x: dir.x, y: dir.y, z: dir.z },
-        right: { x: right.x, y: right.y, z: right.z },
-        up:    { x: up.x, y: up.y, z: up.z },
-    };
-});
 
 export function lerpParticles(lerpRate) {
     const pos = geo.attributes.position.array;
