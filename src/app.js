@@ -16,24 +16,20 @@ import { setupHands } from './gestures/hands.js';
 import { createPerfBadge, createTuneHud, applyPerformanceMode } from './ui/overlays.js';
 import './audio/audio.js';
 
-// create UI elements
 state.perfBadge = createPerfBadge();
 state.tuneHud = createTuneHud();
 
-// init hand tracking
 const video = document.querySelector('.input_video');
 const canvas = document.getElementById('output_canvas');
 const hands = setupHands(video, canvas);
 
-// debug panel
-document.getElementById('debug').style.display = 'none';
-
 // keyboard shortcuts
+const debugEl = document.getElementById('debug');
 window.addEventListener('keydown', e => {
     if (e.key === 'n' || e.key === 'N') {
-        const d = document.getElementById('debug');
-        d.style.display = d.style.display === 'none' ? '' : 'none';
+        debugEl.style.display = debugEl.style.display === 'block' ? 'none' : 'block';
     } else if (e.key === 't' || e.key === 'T') {
+        userForcedPerf = true; // manual toggle wins, stop auto-adjusting
         applyPerformanceMode(!state.perfMode, hands);
     } else if (e.key === 'h' || e.key === 'H') {
         state.tuneHudEnabled = !state.tuneHudEnabled;
@@ -60,12 +56,29 @@ window.addEventListener('resize', handleResize);
 let lastFrame = performance.now();
 let shakeWasActive = false;
 
+// adaptive perf — smoothed fps with hysteresis, manual 't' overrides
+let fpsAvg = 60;
+let lowStreak = 0;
+let highStreak = 0;
+let userForcedPerf = false;
+
 function animate(now) {
     requestAnimationFrame(animate);
 
     const dt = Math.min((now - lastFrame) / 1000, 0.05);
     lastFrame = now;
     state.simAccumDt += dt;
+
+    if (dt > 0) fpsAvg += ((1 / dt) - fpsAvg) * 0.05;
+    if (!userForcedPerf) {
+        if (fpsAvg < 42) { lowStreak++; highStreak = 0; } else { lowStreak = 0; }
+        if (fpsAvg > 55) { highStreak++; } else { highStreak = 0; }
+        if (!state.perfMode && lowStreak > 90) { applyPerformanceMode(true, hands); }
+        else if (state.perfMode && highStreak > 180) { applyPerformanceMode(false, hands); }
+    }
+    if (debugEl.style.display === 'block') {
+        debugEl.textContent = `fps: ${fpsAvg.toFixed(0)}  perf: ${state.perfMode}  tech: ${state.currentTech}`;
+    }
 
     // screen shake — shrine/void rumble slower, red/purple snap fast
     if (state.shakeDecay > 0.01) {
@@ -83,7 +96,6 @@ function animate(now) {
         shakeWasActive = false;
     }
 
-    // simulation step
     const simStep = state.perfMode ? 3 : 1;
     const shouldSimulate = (state.animFrameTick++ % simStep) === 0;
     if (shouldSimulate) {
@@ -101,7 +113,6 @@ function animate(now) {
 
         applyReleaseOverlay(simDt);
 
-        // hand position tracking
         if (state.trackSeenFrames > 0) {
             state.trackSeenFrames--;
         } else {

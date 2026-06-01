@@ -396,8 +396,18 @@ export function setupHands(video, canvas) {
         renderTuneHud(frameHud);
     });
 
+    // inference is the real CPU cost — confidence ramp stays smooth at ~20fps
+    const MIN_INFER_MS = 45;
+    let lastInfer = 0;
     const cam = new Camera(video, {
-        onFrame: async () => { canvas.width = video.videoWidth; canvas.height = video.videoHeight; await hands.send({ image: video }); },
+        onFrame: async () => {
+            const now = performance.now();
+            if (now - lastInfer < MIN_INFER_MS) return;
+            lastInfer = now;
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            await hands.send({ image: video });
+        },
         width: 480, height: 360,
     });
     cam.start();
