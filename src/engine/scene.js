@@ -31,11 +31,13 @@ const renderPass = new RenderPass(scene, camera);
 composer.addPass(renderPass);
 
 const dpr = Math.min(devicePixelRatio, 2);
+// radius wide + threshold a touch higher → bloom spreads into a round halo
+// instead of the separable-blur cross/square you get off a tiny saturated core
 export const bloomPass = new UnrealBloomPass(
     new THREE.Vector2(innerWidth * dpr, innerHeight * dpr),
     1.0,
-    0.72,
-    0.18
+    0.95,
+    0.22
 );
 composer.addPass(bloomPass);
 
