@@ -183,6 +183,23 @@ function pairScale(handA, handB) {
     return ((landmarkDist3(handA, 0, handA, 9) + landmarkDist3(handB, 0, handB, 9)) * 0.5) + 1e-6;
 }
 
+// The old shape term averaged four absolute reach thresholds, which handed a plain fist half
+// the average for free — a fist scored 0.500 against a 0.50 gate. What actually separates the
+// mudra is how far middle+ring out-reach index+pinky: 0.91 for the mudra, 0.19 for an open
+// hand, 0.03 for a fist, negative for the chimera sign. Score that gap directly.
+export function sukunaShape(f) {
+    const pairExt = (f.ext.middle + f.ext.ring) * 0.5;
+    const foldExt = (f.ext.index + f.ext.pinky) * 0.5;
+    const spread = smoothstep(0.22, 0.55, pairExt - foldExt);
+    const folded = (f.curl.index + f.curl.pinky) * 0.5;
+    // fingerStraight tops out near 0.6 even for a locked-straight finger, so keep its weight
+    // low — otherwise it caps the whole score and drags z-noise in with it
+    const straight = (f.straight.middle + f.straight.ring) * 0.5;
+    return spread * (0.35 + 0.65 * folded) * (0.7 + 0.3 * straight);
+}
+
+export const SUKUNA_ENTER = 0.45;
+
 export function evaluateSukunaMudra(left, right) {
     return evaluateSukunaMudraFromFeatures(left, right, handFeatures(left), handFeatures(right));
 }
@@ -190,31 +207,32 @@ export function evaluateSukunaMudra(left, right) {
 export function evaluateSukunaMudraFromFeatures(left, right, lf, rf) {
     const scale = pairScale(left, right);
 
-    const middleUp = (lf.up.middle + rf.up.middle) * 0.5;
-    const ringUp   = (lf.up.ring   + rf.up.ring)   * 0.5;
-    const indexDown = (lf.curl.index + rf.curl.index) * 0.5;
-    const pinkyDown = (lf.curl.pinky + rf.curl.pinky) * 0.5;
-
     const middleGap = landmarkDist3(left, FINGER.middle.tip, right, FINGER.middle.tip) / scale;
     const ringGap   = landmarkDist3(left, FINGER.ring.tip,   right, FINGER.ring.tip)   / scale;
     const wristGap  = landmarkDist3(left, WRIST, right, WRIST) / scale;
-    const wristYGap = Math.abs(left[WRIST].y - right[WRIST].y);
+    const wristYGap = Math.abs(left[WRIST].y - right[WRIST].y) / scale;
 
-    const tipsTouching = middleGap < 0.6 && ringGap < 0.6;
-    const handsJoinedForCast = tipsTouching && wristGap < 1.8;
-    const wristAligned = wristYGap < 0.6;
+    const shapeL = sukunaShape(lf);
+    const shapeR = sukunaShape(rf);
+    const shape = (shapeL + shapeR) * 0.5;
 
-    const shapeScore = (middleUp + ringUp + indexDown + pinkyDown) / 4;
-    const strongMudraShape = shapeScore >= 0.5;
+    const tipGap = (middleGap + ringGap) * 0.5;
+    const tipsTouching = 1 - smoothstep(0.45, 1.05, tipGap);
+    const wristsClose = 1 - smoothstep(1.6, 2.6, wristGap);
+    const wristAligned = 1 - smoothstep(0.7, 1.6, wristYGap);
+    const join = tipsTouching * (0.55 + 0.45 * wristsClose) * (0.75 + 0.25 * wristAligned);
 
-    if (!handsJoinedForCast || !strongMudraShape) {
-        return mudraResult(false, 0, { strongMudraShape, handsJoinedForCast, wristGap, middleGap, ringGap, wristYGap, wristAligned, tipsTouching });
-    }
+    const score = shape * join;
 
-    let score = 3;
-    if (middleGap < 0.3) score++;
-    if (wristAligned) score++;
-    return mudraResult(true, score, { strongMudraShape, handsJoinedForCast, wristGap, middleGap, ringGap, wristYGap, wristAligned, tipsTouching, totalFolded: 4 });
+    return {
+        matched: score >= SUKUNA_ENTER,
+        score, shape, join, shapeL, shapeR,
+        tipsTouching, wristsClose, wristAligned,
+        strongMudraShape: shape >= 0.45,
+        handsJoinedForCast: join >= 0.35,
+        distinctHands: true,
+        wristGap, middleGap, ringGap, wristYGap, tipGap,
+    };
 }
 
 export function evaluateChimeraMudra(left, right) {
@@ -230,7 +248,7 @@ export function evaluateChimeraMudraFromFeatures(left, right, lf, rf) {
     const pinkyDown = (lf.curl.pinky + rf.curl.pinky) * 0.5;
     const thumbTuck = (lf.thumbTuck + rf.thumbTuck) * 0.5;
 
-    const shrineShape = (lf.up.middle > 0.5 && lf.up.ring > 0.5) || (rf.up.middle > 0.5 && rf.up.ring > 0.5);
+    const shrineShape = sukunaShape(lf) > 0.45 || sukunaShape(rf) > 0.45;
     if (shrineShape) {
         return { matched: false, handsJoinedForCast: false, distinctHands: true, wristGap: 999 };
     }
@@ -255,18 +273,3 @@ export function evaluateChimeraMudraFromFeatures(left, right, lf, rf) {
     };
 }
 
-function mudraResult(matched, score, m) {
-    return {
-        matched, score, targetScore: 3,
-        strongMudraShape: m.strongMudraShape,
-        handsJoinedForCast: m.handsJoinedForCast,
-        distinctHands: true,
-        wristGap: m.wristGap, middleGap: m.middleGap, ringGap: m.ringGap,
-        wristYGap: m.wristYGap, wristAligned: m.wristAligned,
-        wristsNearby: m.tipsTouching, wristsCrossLinked: false,
-        palmGap: 0, indexGap: 0, thumbGap: 0,
-        joinedSignals: Number(m.tipsTouching),
-        requiredJoinedSignals: 1, wideWristGap: false, extraScoreRequirement: 0,
-        bothHandsOpen: false, totalFoldedNonIndex: m.totalFolded || 0,
-    };
-}

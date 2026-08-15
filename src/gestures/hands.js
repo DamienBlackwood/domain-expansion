@@ -1,4 +1,4 @@
-import { getHandGesture, handFeatures } from './detection.js';
+import { getHandGesture, handFeatures, SUKUNA_ENTER } from './detection.js';
 import { getHandGestureFromFeatures, evaluateSukunaMudraFromFeatures, evaluateChimeraMudraFromFeatures } from './detection.js';
 import { gestureConfidence, activeGesture, setActiveGesture, stepGestureState, gestureTrack, tuneHudEnabled } from './state.js';
 import { triggerRelease } from '../techniques/release.js';
@@ -10,6 +10,8 @@ const VOID_STICKY = 8;
 const SHRINE_STICKY = 45;
 const CHIMERA_STICKY = 45;
 const TWO_HAND_TRACK_GRACE = 12;
+// one clean frame used to be enough to fire the domain — a single noisy landmark set could do it
+const MUDRA_ARM_FRAMES = 2;
 const MUDRA_UNLOCK_NO_HANDS = 12;
 
 const throwableTechs = new Set(['red', 'blue', 'purple']);
@@ -24,6 +26,7 @@ let twoHandModeFrames = 0;
 let twoHandLostFrames = 999;
 let mudraOnlyMode = false;
 let noHandsFrames = 0;
+let mudraMatchFrames = 0;
 let lastMudraMetrics = null;
 
 const trackedHands = { left: null, right: null };
@@ -108,15 +111,13 @@ function renderTuneHud(frame) {
     const m = frame.mudra;
     const mudraLines = m
         ? [
-            `mudra matched: ${m.matched}`,
-            `mudra score: ${m.score}/${m.targetScore}`,
-            `joinedSignals: ${m.joinedSignals}/${m.requiredJoinedSignals}`,
-            `palmGap: ${formatHudNum(m.palmGap)} wristGap: ${formatHudNum(m.wristGap)}`,
-            `indexGap: ${formatHudNum(m.indexGap)} thumbGap: ${formatHudNum(m.thumbGap)}`,
-            `wristYGap: ${formatHudNum(m.wristYGap)} wristLink: ${m.wristsCrossLinked}`,
-            `totalFolded: ${m.totalFoldedNonIndex} joined: ${m.joinedSignals}/${m.requiredJoinedSignals}`,
-            `wideWristGap: ${m.wideWristGap} handsJoined: ${m.handsJoinedForCast}`,
-            `openReject: ${m.bothHandsOpen} extraScore: +${m.extraScoreRequirement}`,
+            `mudra matched: ${m.matched} (${formatHudNum(m.score)} / ${SUKUNA_ENTER})`,
+            `shape: ${formatHudNum(m.shape)}  L:${formatHudNum(m.shapeL)} R:${formatHudNum(m.shapeR)}`,
+            `join: ${formatHudNum(m.join)}  handsJoined: ${m.handsJoinedForCast}`,
+            `tipsTouching: ${formatHudNum(m.tipsTouching)} tipGap: ${formatHudNum(m.tipGap)}`,
+            `wristsClose: ${formatHudNum(m.wristsClose)} wristGap: ${formatHudNum(m.wristGap)}`,
+            `wristAligned: ${formatHudNum(m.wristAligned)} wristYGap: ${formatHudNum(m.wristYGap)}`,
+            `matchFrames: ${frame.mudraMatchFrames}/${MUDRA_ARM_FRAMES}`,
         ].join('\n')
         : 'mudra matched: -\nmudra score: -';
 
@@ -147,7 +148,7 @@ export function setupHands(video, canvas) {
         const handCount = results.multiHandLandmarks?.length || 0;
         const frameHud = {
             handCount, leftLabel: '-', rightLabel: '-',
-            rawDetected: 'neutral', mudra: null, mudraOnlyMode,
+            rawDetected: 'neutral', mudra: null, mudraOnlyMode, mudraMatchFrames: 0,
         };
         if (handCount > 0) noHandsFrames = 0;
         else noHandsFrames++;
@@ -155,6 +156,7 @@ export function setupHands(video, canvas) {
             shrineStickyFrames = Math.max(0, shrineStickyFrames - 1);
             chimeraStickyFrames = Math.max(0, chimeraStickyFrames - 1);
             twoHandLostFrames++;
+            mudraMatchFrames = 0;
         }
         if (noHandsFrames >= MUDRA_UNLOCK_NO_HANDS) mudraOnlyMode = false;
         frameHud.mudraOnlyMode = mudraOnlyMode;
@@ -203,12 +205,15 @@ export function setupHands(video, canvas) {
                 releaseCharge = 0;
                 gestureTrack.trackSeenFrames = 0;
                 voidStickyFrames = 0;
+                mudraMatchFrames = mudra.matched ? mudraMatchFrames + 1 : 0;
+                frameHud.mudraMatchFrames = mudraMatchFrames;
                 if (!reliableTwoHandPair || voidPair) {
                     mudraOnlyMode = false;
                     twoHandLostFrames++;
                     twoHandModeFrames = 0;
                     shrineStickyFrames = 0;
                     chimeraStickyFrames = 0;
+                    mudraMatchFrames = 0;
                     detected = 'neutral';
                     sukunaGuide.classList.remove('two-hands', 'matched');
                 } else {
@@ -218,7 +223,7 @@ export function setupHands(video, canvas) {
                     twoHandModeFrames++;
                     detected = 'neutral';
 
-                    if (mudra.matched) {
+                    if (mudraMatchFrames >= MUDRA_ARM_FRAMES) {
                         shrineStickyFrames = SHRINE_STICKY;
                         chimeraStickyFrames = 0;
                         detected = 'shrine';
