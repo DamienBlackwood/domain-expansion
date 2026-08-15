@@ -3,7 +3,7 @@ import { state } from './state.js';
 import { scene, camera, renderer, starField, handleResize, composer, bloomPass, bloomStrengths } from './engine/scene.js';
 import { targetPositions, lerpParticles, setShaderTime } from './engine/particles.js';
 import { updateState } from './ui/theme.js';
-import { setActiveGesture, setDevOverride } from './gestures/state.js';
+import { setActiveGesture, setDevOverride, gestureTrack, tuneHudEnabled, setTuneHudEnabled } from './gestures/state.js';
 import { animateNeutral } from './techniques/neutral.js';
 import { animateRed } from './techniques/red.js';
 import { animateBlue } from './techniques/blue.js';
@@ -13,16 +13,17 @@ import { animateShrine } from './techniques/shrine.js';
 import { animateChimera } from './techniques/chimera.js';
 import { applyReleaseOverlay } from './techniques/release.js';
 import { setupHands } from './gestures/hands.js';
-import { createPerfBadge, createTuneHud, applyPerformanceMode } from './ui/overlays.js';
+import { createPerfBadge, createTuneHud, applyPerformanceMode, tuneHud } from './ui/overlays.js';
 import './audio/audio.js';
 
-state.perfBadge = createPerfBadge();
-state.tuneHud = createTuneHud();
+createPerfBadge();
+createTuneHud();
 
 const video = document.querySelector('.input_video');
 const canvas = document.getElementById('output_canvas');
 const hands = setupHands(video, canvas);
 
+// keyboard shortcuts
 const debugEl = document.getElementById('debug');
 window.addEventListener('keydown', e => {
     if (e.key === 'n' || e.key === 'N') {
@@ -31,8 +32,8 @@ window.addEventListener('keydown', e => {
         userForcedPerf = true; 
         applyPerformanceMode(!state.perfMode, hands);
     } else if (e.key === 'h' || e.key === 'H') {
-        state.tuneHudEnabled = !state.tuneHudEnabled;
-        if (!state.tuneHudEnabled) state.tuneHud.style.display = 'none';
+        setTuneHudEnabled(!tuneHudEnabled);
+        if (!tuneHudEnabled) tuneHud.style.display = 'none';
     } else if (e.key === 'c' || e.key === 's') {
         const tech = e.key === 'c' ? 'chimera' : 'shrine';
         if (state.currentTech === tech) {
@@ -55,17 +56,23 @@ window.addEventListener('resize', handleResize);
 let lastFrame = performance.now();
 let shakeWasActive = false;
 
+// i might remove this later
 let fpsAvg = 60;
 let lowStreak = 0;
 let highStreak = 0;
 let userForcedPerf = false;
+
+// sim bookkeeping — only this file ever touches these, so they're not shared state
+let animFrameTick = 0;
+let simAccumDt = 0;
+let trackOffsetX = 0;
 
 function animate(now) {
     requestAnimationFrame(animate);
 
     const dt = Math.min((now - lastFrame) / 1000, 0.05);
     lastFrame = now;
-    state.simAccumDt += dt;
+    simAccumDt += dt;
 
     if (dt > 0) fpsAvg += ((1 / dt) - fpsAvg) * 0.05;
     if (!userForcedPerf) {
@@ -75,9 +82,10 @@ function animate(now) {
         else if (state.perfMode && highStreak > 180) { applyPerformanceMode(false, hands); }
     }
     if (debugEl.style.display === 'block') {
-        debugEl.textContent = `fps: ${fpsAvg.toFixed(0)}  perf: ${state.perfMode}  tech: ${state.currentTech}`;
+        debugEl.textContent = `fps: ${fpsAvg.toFixed(0)}  perf: ${state.perfMode}${userForcedPerf ? ' (manual)' : ''}  tech: ${state.currentTech}`;
     }
 
+    // screen shake i need to enhance this
     if (state.shakeDecay > 0.01) {
         const isBuildup = state.currentTech === 'void' || state.currentTech === 'shrine' || state.currentTech === 'chimera';
         state.shakeDecay *= isBuildup ? 0.985 : 0.955;
@@ -94,10 +102,10 @@ function animate(now) {
     }
 
     const simStep = state.perfMode ? 3 : 1;
-    const shouldSimulate = (state.animFrameTick++ % simStep) === 0;
+    const shouldSimulate = (animFrameTick++ % simStep) === 0;
     if (shouldSimulate) {
-        const simDt = Math.min(state.simAccumDt, 0.12);
-        state.simAccumDt = 0;
+        const simDt = Math.min(simAccumDt, 0.12);
+        simAccumDt = 0;
         state.techTime += simDt;
 
         if      (state.currentTech === 'void')   animateVoid(state.techTime);
@@ -110,18 +118,20 @@ function animate(now) {
 
         applyReleaseOverlay(simDt);
 
-        if (state.trackSeenFrames > 0) {
-            state.trackSeenFrames--;
+        if (gestureTrack.trackSeenFrames > 0) {
+            gestureTrack.trackSeenFrames--;
         } else {
-            state.trackTargetX *= 0.85;
-            if (Math.abs(state.trackTargetX) < 0.002) state.trackTargetX = 0;
+            gestureTrack.trackTargetX *= 0.85;
+            if (Math.abs(gestureTrack.trackTargetX) < 0.002) gestureTrack.trackTargetX = 0;
         }
-        state.trackOffsetX += (state.trackTargetX - state.trackOffsetX) * 0.18;
+        trackOffsetX += (gestureTrack.trackTargetX - trackOffsetX) * 0.18;
         const shouldTrack = state.currentTech === 'red' || state.currentTech === 'blue' || state.currentTech === 'purple';
         if (shouldTrack) {
-            const xShift = state.trackOffsetX * 26;
-            for (let i = 0; i < COUNT; i++) {
-                targetPositions[i * 3] += xShift;
+            const xShift = trackOffsetX * 26;
+            if (Math.abs(xShift) >= 1e-4) {
+                for (let i = 0; i < COUNT; i++) {
+                    targetPositions[i * 3] += xShift;
+                }
             }
         }
 

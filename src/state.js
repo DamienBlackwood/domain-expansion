@@ -1,3 +1,6 @@
+// render/technique state genuinely shared across modules (app.js drives it,
+// theme.js resets it on tech switch, hands.js cross-reads glowColor/perfMode/currentTech).
+// gesture-tracking counters live in gestures/state.js; DOM refs live in ui/overlays.js.
 export const state = {
     currentTech: 'neutral',
     techTime: 0,
@@ -6,13 +9,4 @@ export const state = {
     shakeTime: 0,
     glowColor: 'rgba(120, 200, 180, 1)',
     perfMode: false,
-    handDrawTick: 0,
-    animFrameTick: 0,
-    simAccumDt: 0,
-    tuneHudEnabled: false,
-    trackTargetX: 0,
-    trackOffsetX: 0,
-    trackSeenFrames: 0,
-    perfBadge: null,
-    tuneHud: null,
 };
