@@ -1,14 +1,17 @@
-import { COUNT } from '../utils.js';
+import { COUNT, smoothstep } from '../utils.js';
 import { targetPositions, targetColors, targetSizes } from '../engine/particles.js';
 import { radialField, coreCloud } from './field.js';
 
 const _f = { x: 0, y: 0, z: 0, energy: 0 };
 const _c = { x: 0, y: 0, z: 0, depth: 0 };
+const _optsMid = { direction: -1, reach: 0, speed: 0.16, swirl: 1.0, accel: 1.8 };
+const _optsOuter = { direction: -1, reach: 78, speed: 0.04, swirl: 0.3, accel: 1.0 };
 
 export function animateBlue(t) {
     const form = Math.min(1, t / 1.2);
-    const blend = form * form * (3 - 2 * form);
+    const blend = smoothstep(0, 1, form);
     const breathe = 1 + Math.sin(t * 2.4) * 0.05;
+    _optsMid.reach = 52 * breathe;
 
     for (let i = 0; i < COUNT; i++) {
         const pct = i / COUNT;
@@ -23,7 +26,7 @@ export function animateBlue(t) {
             b = 1.25 + core * 0.55;
             s = 0.6 + core * 1.8;
         } else if (pct < 0.82) {
-            radialField(i, t, { direction: -1, reach: 52 * breathe, speed: 0.16, swirl: 1.0, accel: 1.8 }, _f);
+            radialField(i, t, _optsMid, _f);
             x = _f.x; y = _f.y; z = _f.z;
             const e = _f.energy;
             r = e * e * 0.35;
@@ -31,7 +34,7 @@ export function animateBlue(t) {
             b = 0.22 + e * 1.25;
             s = 0.18 + e * e * 1.5;
         } else {
-            radialField(i, t * 0.4, { direction: -1, reach: 78, speed: 0.04, swirl: 0.3, accel: 1.0 }, _f);
+            radialField(i, t * 0.4, _optsOuter, _f);
             x = _f.x; y = _f.y; z = _f.z;
             r = 0.0; g = 0.04; b = 0.16;
             s = 0.26;
