@@ -9,12 +9,17 @@ export const gestureConfig = {
     void:   { enter: 0.62, hold: 0.33, rise: 0.28, fall: 0.16, cooldown: 380 },
 };
 export const gestureConfidence = { red: 0, blue: 0, purple: 0, void: 0 };
-export const gestureCooldownUntil = { red: 0, blue: 0, purple: 0, void: 0, shrine: 0, chimera: 0 };
+export const gestureCooldownUntil = { red: 0, blue: 0, purple: 0, void: 0 };
 export let activeGesture = 'neutral';
 export let devOverride = false;
 
 export function setActiveGesture(g) { activeGesture = g; }
 export function setDevOverride(v) { devOverride = v; }
+
+// hand-tracking counters — written by hands.js, decayed/consumed by app.js's render loop
+export const gestureTrack = { handDrawTick: 0, trackTargetX: 0, trackSeenFrames: 0 };
+export let tuneHudEnabled = false;
+export function setTuneHudEnabled(v) { tuneHudEnabled = v; }
 
 export function stepGestureState(rawGesture, nowMs) {
     if (devOverride) return;
