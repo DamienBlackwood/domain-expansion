@@ -1,3 +1,4 @@
+import { clamp01, smoothstep } from '../utils.js';
 
 const WRIST = 0;
 const THUMB_TIP = 4, THUMB_IP = 3, THUMB_MCP = 2;
@@ -30,12 +31,6 @@ function cross(a, b) {
 function dot(a, b) { return a.x * b.x + a.y * b.y + a.z * b.z; }
 function len(a) { return Math.hypot(a.x, a.y, a.z); }
 function norm(a) { const l = len(a) + 1e-9; return { x: a.x / l, y: a.y / l, z: a.z / l }; }
-
-function clamp01(v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
-function smoothstep(edge0, edge1, x) {
-    const t = clamp01((x - edge0) / (edge1 - edge0 + 1e-9));
-    return t * t * (3 - 2 * t);
-}
 
 export function normalizeHand(lm) {
     const wrist = lm[WRIST];
@@ -160,7 +155,10 @@ function scoreOpen(f) {
 const GESTURE_FLOOR = 0.42;
 
 export function getHandGesture(lm) {
-    const f = handFeatures(lm);
+    return getHandGestureFromFeatures(handFeatures(lm));
+}
+
+export function getHandGestureFromFeatures(f) {
     const scores = {
         void:   scoreVoid(f),
         red:    scoreRed(f),
@@ -186,9 +184,11 @@ function pairScale(handA, handB) {
 }
 
 export function evaluateSukunaMudra(left, right) {
+    return evaluateSukunaMudraFromFeatures(left, right, handFeatures(left), handFeatures(right));
+}
+
+export function evaluateSukunaMudraFromFeatures(left, right, lf, rf) {
     const scale = pairScale(left, right);
-    const lf = handFeatures(left);
-    const rf = handFeatures(right);
 
     const middleUp = (lf.up.middle + rf.up.middle) * 0.5;
     const ringUp   = (lf.up.ring   + rf.up.ring)   * 0.5;
@@ -218,9 +218,11 @@ export function evaluateSukunaMudra(left, right) {
 }
 
 export function evaluateChimeraMudra(left, right) {
+    return evaluateChimeraMudraFromFeatures(left, right, handFeatures(left), handFeatures(right));
+}
+
+export function evaluateChimeraMudraFromFeatures(left, right, lf, rf) {
     const scale = pairScale(left, right);
-    const lf = handFeatures(left);
-    const rf = handFeatures(right);
 
     const indexUp = (lf.up.index + rf.up.index) * 0.5;
     const midDown = (lf.curl.middle + rf.curl.middle) * 0.5;
@@ -228,7 +230,7 @@ export function evaluateChimeraMudra(left, right) {
     const pinkyDown = (lf.curl.pinky + rf.curl.pinky) * 0.5;
     const thumbTuck = (lf.thumbTuck + rf.thumbTuck) * 0.5;
 
-    const shrineShape = (lf.up.middle > 0.5 || rf.up.middle > 0.5) && (lf.up.ring > 0.5 || rf.up.ring > 0.5);
+    const shrineShape = (lf.up.middle > 0.5 && lf.up.ring > 0.5) || (rf.up.middle > 0.5 && rf.up.ring > 0.5);
     if (shrineShape) {
         return { matched: false, handsJoinedForCast: false, distinctHands: true, wristGap: 999 };
     }
