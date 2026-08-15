@@ -3,6 +3,7 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { STARS } from '../utils.js';
+import { state } from '../state.js';
 
 export const scene = new THREE.Scene();
 scene.fog = new THREE.FogExp2(0x06070b, 0.0055);
@@ -78,16 +79,21 @@ export function setBackground(hexColor) {
     renderer.setClearColor(hexColor, 1);
 }
 
+// single source of truth for the perf-mode pixel ratio cap — renderer.setPixelRatio()
+// and composer.setPixelRatio() both internally re-run setSize() against their last-known
+// width/height, so this alone keeps renderer + composer + bloomPass in sync, resize or not
+export function applyPixelRatio(perfEnabled) {
+    const dpr = Math.min(devicePixelRatio, perfEnabled ? 0.95 : 2);
+    renderer.setPixelRatio(dpr);
+    composer.setPixelRatio(dpr);
+    return dpr;
+}
+
 export function handleResize() {
     camera.aspect = innerWidth / innerHeight;
     camera.updateProjectionMatrix();
 
-    const dpr = Math.min(devicePixelRatio, 2);
-    renderer.setPixelRatio(dpr);
     renderer.setSize(innerWidth, innerHeight);
-
-    composer.setPixelRatio(dpr);
     composer.setSize(innerWidth, innerHeight);
-
-    bloomPass.setSize(innerWidth * dpr, innerHeight * dpr);
+    applyPixelRatio(state.perfMode);
 }
