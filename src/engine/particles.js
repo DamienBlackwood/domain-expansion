@@ -13,8 +13,12 @@ export const targetSizes     = new Float32Array(COUNT);
 export const phases  = new Float32Array(COUNT);
 export const phases2 = new Float32Array(COUNT);
 
+// bumped every reseed so consumers (e.g. field.js's direction cache) know phases2 moved
+export let phaseGen = 0;
+
 export function initPhases() {
     for (let i = 0; i < COUNT; i++) { phases[i] = Math.random(); phases2[i] = Math.random(); }
+    phaseGen++;
 }
 
 const geo = new THREE.BufferGeometry();

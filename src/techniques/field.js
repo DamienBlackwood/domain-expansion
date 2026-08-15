@@ -1,25 +1,32 @@
-import { TAU } from '../utils.js';
-import { phases, phases2 } from '../engine/particles.js';
+import { TAU, COUNT, polarFromUniform } from '../utils.js';
+import { phases, phases2, phaseGen } from '../engine/particles.js';
 
 const GOLDEN = Math.PI * (3 - Math.sqrt(5));
 
-function rayDir(i, p2, out) {
-    const y = 1 - 2 * p2;
-    const radial = Math.sqrt(Math.max(0, 1 - y * y));
-    const th = i * GOLDEN;
-    out.x = Math.cos(th) * radial;
-    out.y = y;
-    out.z = Math.sin(th) * radial;
+// ray directions only depend on (i, phases2[i]), both fixed until the next initPhases()
+// reseed — cache them instead of recomputing cos/sin/sqrt for every particle every frame
+const dirX = new Float32Array(COUNT);
+const dirY = new Float32Array(COUNT);
+const dirZ = new Float32Array(COUNT);
+let cachedGen = -1;
+
+function rebuildDirs() {
+    for (let i = 0; i < COUNT; i++) {
+        const y = 1 - 2 * phases2[i];
+        const radial = Math.sqrt(Math.max(0, 1 - y * y));
+        const th = i * GOLDEN;
+        dirX[i] = Math.cos(th) * radial;
+        dirY[i] = y;
+        dirZ[i] = Math.sin(th) * radial;
+    }
+    cachedGen = phaseGen;
 }
 
-const _dir = { x: 0, y: 0, z: 0 };
-
 export function radialField(i, t, opts, res) {
+    if (cachedGen !== phaseGen) rebuildDirs();
     const { direction, reach, speed, swirl = 0, jagged = 0, accel = 1.6 } = opts;
     const p = phases[i];
     const p2 = phases2[i];
-
-    rayDir(i, p2, _dir);
 
     let flow = (p + t * speed) % 1;
     const eased = Math.pow(flow, accel);
@@ -35,9 +42,9 @@ export function radialField(i, t, opts, res) {
         dist += Math.sin(p * 53.0 + t * 9.0) * reach * 0.06 * jagged * eased;
     }
 
-    let x = _dir.x * dist;
-    let y = _dir.y * dist * 0.92;
-    let z = _dir.z * dist;
+    let x = dirX[i] * dist;
+    let y = dirY[i] * dist * 0.92;
+    let z = dirZ[i] * dist;
 
     if (swirl !== 0) {
         const tighten = 1 - dist / (reach + 1.5);
@@ -52,7 +59,7 @@ export function radialField(i, t, opts, res) {
     res.x = x; res.y = y; res.z = z; res.energy = energy;
 }
 
-function hash01(n) {
+export function hash01(n) {
     n = (n ^ 61) ^ (n >>> 16);
     n = n + (n << 3);
     n = n ^ (n >>> 4);
@@ -65,7 +72,7 @@ export function coreCloud(i, t, radius, res) {
     const sAz = hash01(i * 3 + 2);
     const sPo = hash01(i * 3 + 3);
     const th = sAz * TAU + t;
-    const ph = Math.acos(2 * sPo - 1);
+    const ph = polarFromUniform(sPo);
     const rad = Math.cbrt(sR) * radius;
     res.x = rad * Math.sin(ph) * Math.cos(th);
     res.y = rad * Math.sin(ph) * Math.sin(th) * 0.92;
