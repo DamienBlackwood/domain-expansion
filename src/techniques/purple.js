@@ -1,4 +1,4 @@
-import { COUNT, TAU } from '../utils.js';
+import { COUNT, TAU, polarFromUniform } from '../utils.js';
 import { targetPositions, targetColors, targetSizes, phases, phases2 } from '../engine/particles.js';
 
 export function animatePurple(t) {
@@ -10,7 +10,7 @@ export function animatePurple(t) {
 
         if (pct < 0.08) {
             const th = p * TAU + t * 4.0;
-            const ph = Math.acos(2 * p2 - 1);
+            const ph = polarFromUniform(p2);
             const pulse = 1 + Math.sin(t * 6) * 0.25;
             const rad = p * 3.2 * pulse;
             x = rad * Math.sin(ph) * Math.cos(th);
@@ -70,7 +70,7 @@ export function animatePurple(t) {
             s = 0.2 + fade * 0.15;
         } else {
             const th = p * TAU + t * 0.08;
-            const ph = Math.acos(2 * p2 - 1);
+            const ph = polarFromUniform(p2);
             const rad = 30 + Math.pow(p, 0.5) * 50;
             x = rad * Math.sin(ph) * Math.cos(th);
             y = rad * Math.cos(ph);
