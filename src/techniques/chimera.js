@@ -1,4 +1,4 @@
-import { COUNT, TAU, clamp01 } from '../utils.js';
+import { COUNT, TAU, clamp01, smoothstep, lerp } from '../utils.js';
 import { targetPositions, targetColors, targetSizes, phases, phases2 } from '../engine/particles.js';
 
 const CHIMERA_BUILDUP_SECONDS = 5.5;
@@ -6,11 +6,10 @@ export { CHIMERA_BUILDUP_SECONDS };
 
 export function animateChimera(t) {
     const build = clamp01(t / CHIMERA_BUILDUP_SECONDS);
-    const sm = x => x * x * (3 - 2 * x);
 
-    const eShadowFloor = sm(clamp01((build - 0.0)  / 0.25));
-    const eSpines      = sm(clamp01((build - 0.15) / 0.35));
-    const eGeysers     = sm(clamp01((build - 0.4)  / 0.30));
+    const eShadowFloor = smoothstep(0.0,  0.25, build);
+    const eSpines      = smoothstep(0.15, 0.50, build);
+    const eGeysers     = smoothstep(0.4,  0.70, build);
 
     const baseY = -20;
 
@@ -20,7 +19,7 @@ export function animateChimera(t) {
 
         const sx = (p - 0.5) * 10;
         const sy = baseY + 15 + p2 * 10;
-        const sz = (p - 0.5) * 10;
+        const sz = (p2 - 0.5) * 10;
 
         if (pct < 0.40) {
             const a   = p * TAU * 3.0 + t * 0.1;
@@ -76,12 +75,12 @@ export function animateChimera(t) {
             reveal = eGeysers;
         }
 
-        targetPositions[i * 3]     = sx + (x - sx) * reveal;
-        targetPositions[i * 3 + 1] = sy + (y - sy) * reveal;
-        targetPositions[i * 3 + 2] = sz + (z - sz) * reveal;
-        targetColors[i * 3]     = 0.01 + (r - 0.01) * reveal;
-        targetColors[i * 3 + 1] = 0.02 + (g - 0.02) * reveal;
-        targetColors[i * 3 + 2] = 0.03 + (b - 0.03) * reveal;
-        targetSizes[i] = 0.1 + (s - 0.1) * reveal;
+        targetPositions[i * 3]     = lerp(sx, x, reveal);
+        targetPositions[i * 3 + 1] = lerp(sy, y, reveal);
+        targetPositions[i * 3 + 2] = lerp(sz, z, reveal);
+        targetColors[i * 3]     = lerp(0.01, r, reveal);
+        targetColors[i * 3 + 1] = lerp(0.02, g, reveal);
+        targetColors[i * 3 + 2] = lerp(0.03, b, reveal);
+        targetSizes[i] = lerp(0.1, s, reveal);
     }
 }

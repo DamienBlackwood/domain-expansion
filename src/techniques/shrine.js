@@ -1,4 +1,4 @@
-import { COUNT, TAU, clamp01 } from '../utils.js';
+import { COUNT, TAU, clamp01, smoothstep, lerp } from '../utils.js';
 import { targetPositions, targetColors, targetSizes, phases, phases2 } from '../engine/particles.js';
 
 const SHRINE_BUILDUP_SECONDS = 6;
@@ -6,14 +6,13 @@ export { SHRINE_BUILDUP_SECONDS };
 
 export function animateShrine(t) {
     const build = clamp01(t / SHRINE_BUILDUP_SECONDS);
-    const sm = x => x * x * (3 - 2 * x);
 
-    const eGround  = sm(clamp01((build - 0.00) / 0.18));
-    const eGate    = sm(clamp01((build - 0.12) / 0.22));
-    const eCrackle = sm(clamp01((build - 0.28) / 0.22));
-    const eEmbers  = sm(clamp01((build - 0.40) / 0.20));
-    const eHaze    = sm(clamp01((build - 0.55) / 0.20));
-    const eSky     = sm(clamp01((build - 0.70) / 0.30));
+    const eGround  = smoothstep(0.00, 0.18, build);
+    const eGate    = smoothstep(0.12, 0.34, build);
+    const eCrackle = smoothstep(0.28, 0.50, build);
+    const eEmbers  = smoothstep(0.40, 0.60, build);
+    const eHaze    = smoothstep(0.55, 0.75, build);
+    const eSky     = smoothstep(0.70, 1.00, build);
 
     const pillarSpacing = 14;
     const pillarHeight  = 36;
@@ -164,12 +163,12 @@ export function animateShrine(t) {
             reveal = eSky;
         }
 
-        targetPositions[i * 3]     = sx + (x - sx) * reveal;
-        targetPositions[i * 3 + 1] = sy + (y - sy) * reveal;
-        targetPositions[i * 3 + 2] = sz + (z - sz) * reveal;
-        targetColors[i * 3]     = baseR + (r - baseR) * reveal;
-        targetColors[i * 3 + 1] = baseG + (g - baseG) * reveal;
-        targetColors[i * 3 + 2] = baseB + (b - baseB) * reveal;
-        targetSizes[i] = baseS + (s - baseS) * reveal;
+        targetPositions[i * 3]     = lerp(sx, x, reveal);
+        targetPositions[i * 3 + 1] = lerp(sy, y, reveal);
+        targetPositions[i * 3 + 2] = lerp(sz, z, reveal);
+        targetColors[i * 3]     = lerp(baseR, r, reveal);
+        targetColors[i * 3 + 1] = lerp(baseG, g, reveal);
+        targetColors[i * 3 + 2] = lerp(baseB, b, reveal);
+        targetSizes[i] = lerp(baseS, s, reveal);
     }
 }
