@@ -1,11 +1,15 @@
-import { renderer } from '../engine/scene.js';
+import { applyPixelRatio } from '../engine/scene.js';
 import { state } from '../state.js';
 
+// DOM refs live here since this module creates them — other modules import the live binding
+export let perfBadge = null;
+export let tuneHud = null;
+
 export function createPerfBadge() {
-    const perfBadge = document.createElement('div');
-    perfBadge.id = 'perf-badge';
-    perfBadge.textContent = 'TEST MODE';
-    perfBadge.style.cssText = [
+    const el = document.createElement('div');
+    el.id = 'perf-badge';
+    el.textContent = 'TEST MODE';
+    el.style.cssText = [
         'position:fixed', 'top:16px', 'right:16px', 'z-index:35',
         'padding:6px 10px',
         "font:700 11px/1 'Inter', sans-serif",
@@ -15,14 +19,15 @@ export function createPerfBadge() {
         'border-radius:4px', 'backdrop-filter:blur(4px)',
         'display:none',
     ].join(';');
-    document.body.appendChild(perfBadge);
-    return perfBadge;
+    document.body.appendChild(el);
+    perfBadge = el;
+    return el;
 }
 
 export function createTuneHud() {
-    const tuneHud = document.createElement('div');
-    tuneHud.id = 'tune-hud';
-    tuneHud.style.cssText = [
+    const el = document.createElement('div');
+    el.id = 'tune-hud';
+    el.style.cssText = [
         'position:fixed', 'top:52px', 'right:16px', 'z-index:36',
         'min-width:260px', 'padding:10px 12px',
         "font:600 11px/1.35 'Inter', sans-serif",
@@ -32,19 +37,19 @@ export function createTuneHud() {
         'border-radius:6px', 'backdrop-filter:blur(6px)',
         'white-space:pre', 'display:none',
     ].join(';');
-    document.body.appendChild(tuneHud);
-    return tuneHud;
+    document.body.appendChild(el);
+    tuneHud = el;
+    return el;
 }
 
 export function applyPerformanceMode(enabled, hands) {
     state.perfMode = enabled;
-    const pixelRatioCap = enabled ? 0.95 : 2;
-    renderer.setPixelRatio(Math.min(devicePixelRatio, pixelRatioCap));
+    applyPixelRatio(enabled);
     hands.setOptions({
         maxNumHands: 2,
         modelComplexity: enabled ? 0 : 1,
         minDetectionConfidence: 0.5,
         minTrackingConfidence: 0.35,
     });
-    state.perfBadge.style.display = enabled ? 'block' : 'none';
+    perfBadge.style.display = enabled ? 'block' : 'none';
 }
