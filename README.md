@@ -44,6 +44,7 @@ if you want audio, add your own files to `./sfx/` using the same filenames the a
 
 - `gojos-domain.opus`
 - `sukunas-domain.opus`
+- `chimera-domain.opus`
 
 ## requirements
 

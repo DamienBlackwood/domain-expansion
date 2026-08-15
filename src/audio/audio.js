@@ -2,11 +2,21 @@ const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 const masterGain = audioCtx.createGain();
 masterGain.connect(audioCtx.destination);
 
+// browsers block audioCtx.resume() outside a real user gesture — gesture detection alone
+// may never unlock it, so grab the first genuine click/keypress as a fallback
+const unlockAudio = () => {
+    audioCtx.resume().catch(() => {});
+    window.removeEventListener('pointerdown', unlockAudio);
+    window.removeEventListener('keydown', unlockAudio);
+};
+window.addEventListener('pointerdown', unlockAudio);
+window.addEventListener('keydown', unlockAudio);
+
 export const audioBank = {};
 
 export function loadAudio(name, url) {
     audioBank[name] = {
-        buffer: null, source: null, gain: null,
+        buffer: null, source: null, gain: null, starting: false,
         lastPlayAt: 0, startedAtCtx: 0, offsetAtStart: 0,
         pauseOffset: 0, pausedAt: 0, isLoop: false,
     };
@@ -18,7 +28,7 @@ export function loadAudio(name, url) {
 
 export async function loadAudioFirst(name, urls) {
     audioBank[name] = {
-        buffer: null, source: null, gain: null,
+        buffer: null, source: null, gain: null, starting: false,
         lastPlayAt: 0, startedAtCtx: 0, offsetAtStart: 0,
         pauseOffset: 0, pausedAt: 0, isLoop: false,
     };
@@ -37,7 +47,7 @@ export async function loadAudioFirst(name, urls) {
 
 export function playAudio(name, opts = {}) {
     const { loop = false, gain = 0.7, fadeInMs = 220, cooldownMs = 0, resumeWindowMs = 0 } = opts;
-    const b = audioBank[name]; if (!b?.buffer || b.source) return;
+    const b = audioBank[name]; if (!b?.buffer || b.source || b.starting) return;
     const nowMs = performance.now();
     let startOffset = 0;
     if (b.pauseOffset > 0 && resumeWindowMs > 0 && nowMs - b.pausedAt <= resumeWindowMs) {
@@ -48,34 +58,42 @@ export function playAudio(name, opts = {}) {
     }
     if (cooldownMs > 0 && startOffset === 0 && nowMs - b.lastPlayAt < cooldownMs) return;
     b.lastPlayAt = nowMs;
+    b.starting = true;
 
     audioCtx.resume().then(() => {
+        b.starting = false;
         const bufferDuration = Math.max(0.001, b.buffer.duration || 0.001);
         const safeOffset = loop
             ? (startOffset % bufferDuration)
             : Math.max(0, Math.min(bufferDuration - 0.001, startOffset));
-        b.gain = audioCtx.createGain();
-        b.gain.gain.setValueAtTime(0, audioCtx.currentTime);
-        b.gain.gain.linearRampToValueAtTime(gain, audioCtx.currentTime + (fadeInMs / 1000));
-        b.gain.connect(masterGain);
+        const gainNode = audioCtx.createGain();
+        gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+        gainNode.gain.linearRampToValueAtTime(gain, audioCtx.currentTime + (fadeInMs / 1000));
+        gainNode.connect(masterGain);
         const src = audioCtx.createBufferSource();
         src.buffer = b.buffer;
         src.loop = loop;
-        src.connect(b.gain);
+        src.connect(gainNode);
         src.onended = () => {
+            // always clean up this source's own nodes, even if a newer one has since replaced it as "current"
+            src.disconnect();
+            gainNode.disconnect();
             if (b.source === src) {
-                src.disconnect();
                 b.source = null;
-                if (b.gain) { b.gain.disconnect(); b.gain = null; }
+                b.gain = null;
                 b.pauseOffset = 0;
                 b.pausedAt = 0;
             }
         };
         b.source = src;
+        b.gain = gainNode;
         b.isLoop = loop;
         b.offsetAtStart = safeOffset;
         b.startedAtCtx = audioCtx.currentTime;
         src.start(0, safeOffset);
+    }).catch(e => {
+        b.starting = false;
+        console.warn(`${name} audio play:`, e);
     });
 }
 
@@ -120,4 +138,7 @@ loadAudioFirst('void', [
 ]);
 loadAudioFirst('shrine', [
     sfxUrl('sukunas-domain.opus'),
+]);
+loadAudioFirst('chimera', [
+    sfxUrl('chimera-domain.opus'),
 ]);
