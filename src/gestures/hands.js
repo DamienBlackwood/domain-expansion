@@ -1,9 +1,10 @@
-import { landmarkDist3 } from './detection.js';
-import { getHandGesture, evaluateSukunaMudra, evaluateChimeraMudra } from './detection.js';
-import { gestureConfidence, activeGesture, setActiveGesture, stepGestureState } from './state.js';
+import { landmarkDist3, getHandGesture, handFeatures } from './detection.js';
+import { getHandGestureFromFeatures, evaluateSukunaMudraFromFeatures, evaluateChimeraMudraFromFeatures } from './detection.js';
+import { gestureConfidence, activeGesture, setActiveGesture, stepGestureState, gestureTrack, tuneHudEnabled } from './state.js';
 import { triggerRelease } from '../techniques/release.js';
 import { playAudio, stopAudio, audioBank } from '../audio/audio.js';
 import { state } from '../state.js';
+import { tuneHud } from '../ui/overlays.js';
 
 const VOID_STICKY = 8;
 const SHRINE_STICKY = 45;
@@ -100,11 +101,11 @@ function formatHudNum(v) {
 }
 
 function renderTuneHud(frame) {
-    if (!state.tuneHudEnabled) {
-        state.tuneHud.style.display = 'none';
+    if (!tuneHudEnabled) {
+        tuneHud.style.display = 'none';
         return;
     }
-    state.tuneHud.style.display = 'block';
+    tuneHud.style.display = 'block';
     const m = frame.mudra;
     const mudraLines = m
         ? [
@@ -120,7 +121,7 @@ function renderTuneHud(frame) {
         ].join('\n')
         : 'mudra matched: -\nmudra score: -';
 
-    state.tuneHud.textContent = [
+    tuneHud.textContent = [
         `hands: ${frame.handCount} left:${frame.leftLabel} right:${frame.rightLabel}`,
         `mudraMode: ${frame.mudraOnlyMode}`,
         `raw: ${frame.rawDetected} active: ${activeGesture}`,
@@ -160,7 +161,7 @@ export function setupHands(video, canvas) {
         frameHud.mudraOnlyMode = mudraOnlyMode;
 
         if (handCount > 0) {
-            const drawHandsNow = !state.perfMode || ((state.handDrawTick++ % 2) === 0);
+            const drawHandsNow = !state.perfMode || ((gestureTrack.handDrawTick++ % 2) === 0);
             if (drawHandsNow) {
                 const lineWidth = state.perfMode ? 2 : 4;
                 const dotRadius = state.perfMode ? 1.2 : 2;
@@ -181,10 +182,12 @@ export function setupHands(video, canvas) {
                 const b = pair.right;
                 frameHud.leftLabel = pair.leftLabel;
                 frameHud.rightLabel = pair.rightLabel;
-                const mudra = evaluateSukunaMudra(a, b);
-                const chimeraMudra = evaluateChimeraMudra(a, b);
-                const leftGesture = getHandGesture(a);
-                const rightGesture = getHandGesture(b);
+                const af = handFeatures(a);
+                const bf = handFeatures(b);
+                const mudra = evaluateSukunaMudraFromFeatures(a, b, af, bf);
+                const chimeraMudra = evaluateChimeraMudraFromFeatures(a, b, af, bf);
+                const leftGesture = getHandGestureFromFeatures(af);
+                const rightGesture = getHandGestureFromFeatures(bf);
                 const voidPair = leftGesture === 'void' || rightGesture === 'void';
                 const knownLeft = pair.leftLabel === 'left' || pair.leftLabel === 'right';
                 const knownRight = pair.rightLabel === 'left' || pair.rightLabel === 'right';
@@ -199,7 +202,7 @@ export function setupHands(video, canvas) {
                 frameHud.mudra = mudra;
                 lastPalm = null;
                 releaseCharge = 0;
-                state.trackSeenFrames = 0;
+                gestureTrack.trackSeenFrames = 0;
                 voidStickyFrames = 0;
                 if (!reliableTwoHandPair || voidPair) {
                     mudraOnlyMode = false;
@@ -259,7 +262,7 @@ export function setupHands(video, canvas) {
                     }
                     lastPalm = null;
                     releaseCharge = 0;
-                    state.trackSeenFrames = 0;
+                    gestureTrack.trackSeenFrames = 0;
                 } else {
                     const keepTwoHandMode = twoHandModeFrames > 0 && twoHandLostFrames <= TWO_HAND_TRACK_GRACE;
                     if (keepTwoHandMode) {
@@ -269,11 +272,10 @@ export function setupHands(video, canvas) {
                         detected = 'neutral';
                         lastPalm = null;
                         releaseCharge = 0;
-                        state.trackSeenFrames = 0;
+                        gestureTrack.trackSeenFrames = 0;
                         voidStickyFrames = 0;
                     } else {
                         twoHandModeFrames = 0;
-                        shrineStickyFrames = Math.max(0, shrineStickyFrames - 1);
                         sukunaGuide.classList.remove('two-hands', 'matched');
                         const lm = results.multiHandLandmarks[0];
                         const handedness = results.multiHandedness || results.multi_handedness || [];
@@ -286,13 +288,13 @@ export function setupHands(video, canvas) {
                         const palmVelY = lastPalm ? palm.y - lastPalm.y : 0;
                         const speed = Math.hypot(palmVelX, palmVelY);
 
-                        const positionTrackActive = state.currentTech === 'red' || state.currentTech === 'blue';
+                        const positionTrackActive = state.currentTech === 'red' || state.currentTech === 'blue' || state.currentTech === 'purple';
                         if (positionTrackActive) {
-                            state.trackTargetX = Math.max(-1, Math.min(1, (0.5 - palm.x) * 2.0));
-                            state.trackSeenFrames = 12;
+                            gestureTrack.trackTargetX = Math.max(-1, Math.min(1, (0.5 - palm.x) * 2.0));
+                            gestureTrack.trackSeenFrames = 12;
                         } else {
-                            state.trackTargetX = 0;
-                            state.trackSeenFrames = 0;
+                            gestureTrack.trackTargetX = 0;
+                            gestureTrack.trackSeenFrames = 0;
                         }
 
                         if (throwableTechs.has(state.currentTech) && gesture !== 'open') {
@@ -343,10 +345,9 @@ export function setupHands(video, canvas) {
                 sukunaGuide.classList.remove('matched');
                 detected = 'neutral';
             }
-            shrineStickyFrames = Math.max(0, shrineStickyFrames - 1);
             lastPalm = null;
             releaseCharge = Math.max(0, releaseCharge - 0.12);
-            state.trackSeenFrames = Math.max(0, state.trackSeenFrames - 1);
+            gestureTrack.trackSeenFrames = Math.max(0, gestureTrack.trackSeenFrames - 1);
             voidStickyFrames = Math.max(0, voidStickyFrames - 1);
         }
 
@@ -376,7 +377,6 @@ export function setupHands(video, canvas) {
             gestureConfidence.red = 0;
             gestureConfidence.blue = 0;
             gestureConfidence.purple = 0;
-            gestureConfidence.void = 0;
             if (handCount < 2 && activeGesture === 'shrine' && shrineStickyFrames <= 0) {
                 setActiveGesture('neutral');
                 detected = 'neutral';
@@ -385,8 +385,8 @@ export function setupHands(video, canvas) {
                 setActiveGesture('neutral');
                 detected = 'neutral';
             }
-            if (activeGesture !== 'neutral' && activeGesture !== 'shrine' && activeGesture !== 'chimera') setActiveGesture('neutral');
-            if (detected !== 'shrine' && detected !== 'chimera') detected = 'neutral';
+            if (activeGesture !== 'neutral' && activeGesture !== 'shrine' && activeGesture !== 'chimera' && activeGesture !== 'void') setActiveGesture('neutral');
+            if (detected !== 'shrine' && detected !== 'chimera' && detected !== 'void') detected = 'neutral';
             frameHud.rawDetected = detected;
         }
         frameHud.mudraOnlyMode = mudraOnlyMode;
@@ -401,13 +401,33 @@ export function setupHands(video, canvas) {
             const now = performance.now();
             if (now - lastInfer < MIN_INFER_MS) return;
             lastInfer = now;
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            await hands.send({ image: video });
+            if (canvas.width !== video.videoWidth) canvas.width = video.videoWidth;
+            if (canvas.height !== video.videoHeight) canvas.height = video.videoHeight;
+            try {
+                await hands.send({ image: video });
+            } catch (err) {
+                console.error('hand tracking frame failed:', err);
+            }
         },
         width: 480, height: 360,
     });
-    cam.start();
+    cam.start().catch(err => {
+        console.error('camera start failed:', err);
+        showFatalError('Could not access your camera — check permissions and reload the page.');
+    });
 
     return hands;
+}
+
+function showFatalError(msg) {
+    const el = document.createElement('div');
+    el.style.cssText = [
+        'position:fixed', 'inset:0', 'z-index:999',
+        'display:flex', 'align-items:center', 'justify-content:center',
+        'padding:24px', 'text-align:center',
+        "font:600 15px/1.5 'Inter', sans-serif",
+        'color:#fff', 'background:rgba(5,5,8,0.92)',
+    ].join(';');
+    el.textContent = msg;
+    document.body.appendChild(el);
 }
