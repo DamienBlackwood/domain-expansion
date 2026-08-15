@@ -1,4 +1,4 @@
-import { landmarkDist3, getHandGesture, handFeatures } from './detection.js';
+import { getHandGesture, handFeatures } from './detection.js';
 import { getHandGestureFromFeatures, evaluateSukunaMudraFromFeatures, evaluateChimeraMudraFromFeatures } from './detection.js';
 import { gestureConfidence, activeGesture, setActiveGesture, stepGestureState, gestureTrack, tuneHudEnabled } from './state.js';
 import { triggerRelease } from '../techniques/release.js';
@@ -9,7 +9,6 @@ import { tuneHud } from '../ui/overlays.js';
 const VOID_STICKY = 8;
 const SHRINE_STICKY = 45;
 const CHIMERA_STICKY = 45;
-const TWO_HAND_MUDRA_ARM_FRAMES = 2;
 const TWO_HAND_TRACK_GRACE = 12;
 const MUDRA_UNLOCK_NO_HANDS = 12;
 
