@@ -16,7 +16,7 @@ export const audioBank = {};
 
 export function loadAudio(name, url) {
     audioBank[name] = {
-        buffer: null, source: null, gain: null, starting: false,
+        buffer: null, source: null, gain: null, starting: false, startSeq: 0,
         lastPlayAt: 0, startedAtCtx: 0, offsetAtStart: 0,
         pauseOffset: 0, pausedAt: 0, isLoop: false,
     };
@@ -28,7 +28,7 @@ export function loadAudio(name, url) {
 
 export async function loadAudioFirst(name, urls) {
     audioBank[name] = {
-        buffer: null, source: null, gain: null, starting: false,
+        buffer: null, source: null, gain: null, starting: false, startSeq: 0,
         lastPlayAt: 0, startedAtCtx: 0, offsetAtStart: 0,
         pauseOffset: 0, pausedAt: 0, isLoop: false,
     };
@@ -59,8 +59,11 @@ export function playAudio(name, opts = {}) {
     if (cooldownMs > 0 && startOffset === 0 && nowMs - b.lastPlayAt < cooldownMs) return;
     b.lastPlayAt = nowMs;
     b.starting = true;
+    const seq = ++b.startSeq;
 
     audioCtx.resume().then(() => {
+        // a stopAudio landed while we were waiting on resume() — don't start at all
+        if (b.startSeq !== seq) return;
         b.starting = false;
         const bufferDuration = Math.max(0.001, b.buffer.duration || 0.001);
         const safeOffset = loop
@@ -92,14 +95,19 @@ export function playAudio(name, opts = {}) {
         b.startedAtCtx = audioCtx.currentTime;
         src.start(0, safeOffset);
     }).catch(e => {
-        b.starting = false;
+        if (b.startSeq === seq) b.starting = false;
         console.warn(`${name} audio play:`, e);
     });
 }
 
 export function stopAudio(name, opts = {}) {
     const { immediate = false, pause = false } = opts;
-    const b = audioBank[name]; if (!b?.source) return;
+    const b = audioBank[name]; if (!b) return;
+    if (b.starting) {
+        b.startSeq++;
+        b.starting = false;
+    }
+    if (!b.source) return;
     const nowMs = performance.now();
     const elapsed = Math.max(0, audioCtx.currentTime - b.startedAtCtx);
     const rawOffset = b.offsetAtStart + elapsed;
