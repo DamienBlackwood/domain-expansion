@@ -12,13 +12,16 @@ export const releaseFx = {
     burst: 0,
 };
 
-function getReleaseColor(tech, alpha) {
+const _tint = { r: 0, g: 0, b: 0 };
+function getReleaseColor(tech, alpha, out) {
     if (tech === 'red') {
         const heat = alpha * alpha;
-        return { r: 1.05 + heat * 1.15, g: 0.02 + heat * 0.52, b: 0.01 + heat * 0.44 };
+        out.r = 1.05 + heat * 1.15; out.g = 0.02 + heat * 0.52; out.b = 0.01 + heat * 0.44;
+    } else if (tech === 'blue') {
+        out.r = 0.02; out.g = 0.5 + alpha * 0.35; out.b = 1.1 + alpha * 1.2;
+    } else {
+        out.r = 0.5 + alpha * 0.8; out.g = 0.06 + alpha * 0.07; out.b = 0.9 + alpha * 1.0;
     }
-    if (tech === 'blue') return { r: 0.02, g: 0.5 + alpha * 0.35, b: 1.1 + alpha * 1.2 };
-    return { r: 0.5 + alpha * 0.8, g: 0.06 + alpha * 0.07, b: 0.9 + alpha * 1.0 };
 }
 
 export function triggerRelease(tech, dx, dy) {
@@ -91,10 +94,10 @@ export function applyReleaseOverlay(dt) {
         targetPositions[i * 3 + 1] = dir.y * along + radialY;
         targetPositions[i * 3 + 2] = dir.z * along + radialZ;
 
-        const tint = getReleaseColor(releaseFx.tech, glow);
-        targetColors[i * 3]     = tint.r;
-        targetColors[i * 3 + 1] = tint.g;
-        targetColors[i * 3 + 2] = tint.b;
+        getReleaseColor(releaseFx.tech, glow, _tint);
+        targetColors[i * 3]     = _tint.r;
+        targetColors[i * 3 + 1] = _tint.g;
+        targetColors[i * 3 + 2] = _tint.b;
         targetSizes[i] = 0.8 + glow * (2.4 - p * 1.1);
     }
 }
