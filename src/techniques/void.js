@@ -1,4 +1,4 @@
-import { COUNT, TAU, clamp01 } from '../utils.js';
+import { COUNT, TAU, clamp01, smoothstep, lerp, polarFromUniform } from '../utils.js';
 import { targetPositions, targetColors, targetSizes, phases, phases2 } from '../engine/particles.js';
 
 const VOID_BUILDUP_SECONDS = 7.5;
@@ -7,12 +7,28 @@ export { VOID_BUILDUP_SECONDS };
 const RUSH_END = 0.20;
 const FLASH_END = 0.27;
 const SPOKES = 90;
+const RAYS = 28;
+
+// spokeAng has no time term — the 90 possible values never change, so build the table once, ever
+const spokeCos = new Float32Array(SPOKES);
+const spokeSin = new Float32Array(SPOKES);
+for (let s = 0; s < SPOKES; s++) {
+    const ang = (s / SPOKES) * TAU;
+    spokeCos[s] = Math.cos(ang);
+    spokeSin[s] = Math.sin(ang);
+}
+
+// rayAng depends on t, so these 28 entries are rebuilt once per frame instead of per particle
+const rayCos = new Float32Array(RAYS);
+const raySin = new Float32Array(RAYS);
+const rayCosPerp = new Float32Array(RAYS);
+const raySinPerp = new Float32Array(RAYS);
 
 export function animateVoid(t) {
     const build = clamp01(t / VOID_BUILDUP_SECONDS);
 
     const formed = clamp01((build - FLASH_END) / (1 - FLASH_END));
-    const formS = formed * formed * (3 - 2 * formed);
+    const formS = smoothstep(0, 1, formed);
 
     const flash = build < RUSH_END
         ? clamp01(build / RUSH_END) * 0.55
@@ -27,6 +43,15 @@ export function animateVoid(t) {
     const revField = clamp01((formed - 0.55) / 0.45);
 
     const rushProg = clamp01(build / RUSH_END);
+    const inward = Math.pow(rushProg, 1.6);
+
+    for (let r = 0; r < RAYS; r++) {
+        const rayAng = (r / RAYS) * TAU + t * 0.06 + Math.sin(t * 0.4 + r) * 0.05;
+        rayCos[r] = Math.cos(rayAng);
+        raySin[r] = Math.sin(rayAng);
+        rayCosPerp[r] = Math.cos(rayAng + 1.57);
+        raySinPerp[r] = Math.sin(rayAng + 1.57);
+    }
 
     for (let i = 0; i < COUNT; i++) {
         const p = phases[i];
@@ -34,11 +59,9 @@ export function animateVoid(t) {
         const pct = i / COUNT;
 
         const spoke = i % SPOKES;
-        const spokeAng = (spoke / SPOKES) * TAU;
-        const inward = Math.pow(rushProg, 1.6);
         const lineDist = (8 + p * 78) * (1 - inward * 0.92);
-        const rushX = Math.cos(spokeAng) * lineDist;
-        const rushY = Math.sin(spokeAng) * lineDist * 0.96;
+        const rushX = spokeCos[spoke] * lineDist;
+        const rushY = spokeSin[spoke] * lineDist * 0.96;
         const rushZ = (p2 - 0.5) * 6;
         const rushBright = 0.45 + rushProg * rushProg * 1.6;
 
@@ -60,14 +83,12 @@ export function animateVoid(t) {
             layerReveal = revIris;
 
         } else if (pct < 0.34) {
-            const RAYS = 28;
             const ray = i % RAYS;
             const along = (pct - 0.10) / 0.24;
-            const rayAng = (ray / RAYS) * TAU + t * 0.06 + Math.sin(t * 0.4 + ray) * 0.05;
             const dist = 11 + along * 64 + Math.sin(t * 0.7 + p * 8) * 2.0;
             const jitter = (p2 - 0.5) * (1.2 + along * 2.0);
-            fx = Math.cos(rayAng) * dist + Math.cos(rayAng + 1.57) * jitter;
-            fy = (Math.sin(rayAng) * dist + Math.sin(rayAng + 1.57) * jitter) * 0.92;
+            fx = rayCos[ray] * dist + rayCosPerp[ray] * jitter;
+            fy = (raySin[ray] * dist + raySinPerp[ray] * jitter) * 0.92;
             fz = (p - 0.5) * 4;
             const fade = 1 - along * 0.8;
             const flick = 0.6 + 0.4 * Math.sin(p * 40 + t * 3.0);
@@ -113,7 +134,7 @@ export function animateVoid(t) {
             layerReveal = revInk;
 
         } else {
-            const phi = Math.acos(1 - 2 * p);
+            const phi = Math.PI - polarFromUniform(p);
             const theta = p2 * TAU + t * 0.05;
             const rad = 60 + Math.pow(p, 0.5) * 50 + Math.sin(t * 0.15 + p * 7) * 3.0;
             fx = rad * Math.sin(phi) * Math.cos(theta);
@@ -129,14 +150,14 @@ export function animateVoid(t) {
         }
 
         const toFormed = formS * layerReveal;
-        const x = rushX + (fx - rushX) * toFormed;
-        const y = rushY + (fy - rushY) * toFormed;
-        const z = rushZ + (fz - rushZ) * toFormed;
+        const x = lerp(rushX, fx, toFormed);
+        const y = lerp(rushY, fy, toFormed);
+        const z = lerp(rushZ, fz, toFormed);
 
-        let r = rushBright * (1 - toFormed) + fr * toFormed;
-        let g = rushBright * (1 - toFormed) + fg * toFormed;
-        let b = (rushBright + 0.4) * (1 - toFormed) + fb * toFormed;
-        let s = (0.35 + rushProg * 1.3) * (1 - toFormed) + fs * toFormed;
+        let r = lerp(rushBright, fr, toFormed);
+        let g = lerp(rushBright, fg, toFormed);
+        let b = lerp(rushBright + 0.4, fb, toFormed);
+        let s = lerp(0.35 + rushProg * 1.3, fs, toFormed);
 
         if (flash > 0.001) {
             r += flash * 1.6; g += flash * 1.7; b += flash * 1.9;
